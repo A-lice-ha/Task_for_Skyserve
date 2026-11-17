@@ -97,6 +97,70 @@ A 10 m displacement can create change-like edges around buildings and roads.
 The high SCL-valid fractions are mask-derived coverage only and do not
 guarantee freedom from haze or other residual atmospheric effects.
 
+### Cloud, shadow, and atmospheric-quality assessment
+
+The Sen2Cor SCL rasters are 20 m. The following class fractions were counted
+on their native grids (30,140,100 pixels per scene). Cloud/cirrus combines
+classes 8, 9, and 10; cloud shadow is class 3. SCL class 2 (dark area) is
+reported separately and is not assumed to be cloud shadow.
+
+| Tile / date | Cloud/cirrus (SCL 8/9/10) | Shadow (SCL 3) | Dark area (SCL 2) | Unclassified (SCL 7) |
+|---|---:|---:|---:|---:|
+| T43QBB, 2022-12-23 | 0.0013% | 0.0000% | 5.4857% | 0.0049% |
+| T43QBB, 2023-05-12 | 5.4475% | 0.2372% | 22.5175% | 5.0502% |
+| T43RGM, 2023-10-06 | 0.0001% | 0.0000% | 1.4084% | 0.0028% |
+| T43RGM, 2026-10-22 | 0.0000% | 0.0000% | 1.2742% | 0.0009% |
+
+This SCL result conflicts with the user's visual spot-check of the
+2026-10-22 T43RGM RGB rendering, which shows a broad diffuse bright veil
+consistent with haze or smoke-like contamination. The screenshot alone cannot
+distinguish smoke from haze, thin cloud, or display/stretch effects. Importantly,
+the almost-100% valid-mask fraction for this scene is not evidence that the
+image is atmospherically clean: SCL missed the visually apparent veil in this
+spot-check. Do not treat all mask-valid pixels as reliable for change
+interpretation; review the AOI and mask cloudy/hazy regions conservatively.
+No unvalidated AOT threshold is applied automatically.
+
+Sen2Cor's AOT and water-vapour rasters provide additional estimated
+atmospheric indicators. AOT was scaled by the metadata quantification value
+(1000); water vapour was scaled by 1000 cm. These are product estimates, not
+independent measurements or pass/fail quality scores.
+
+| Tile / date | AOT median / P98 (unitless) | Water-vapour median / P98 (cm) |
+|---|---:|---:|
+| T43QBB, 2022-12-23 | 0.254 / 0.288 | 1.799 / 2.186 |
+| T43QBB, 2023-05-12 | 0.460 / 0.475 | 2.853 / 3.251 |
+| T43RGM, 2023-10-06 | 0.372 / 0.401 | 1.708 / 2.020 |
+| T43RGM, 2026-10-22 | 0.419 / 0.443 | 1.856 / 2.183 |
+
+For the T43RGM comparison, the later scene's median AOT is about 12.6% higher
+than the earlier scene's (0.419 versus 0.372), and its P98 is about 10.5%
+higher (0.443 versus 0.401). This supports investigating residual aerosol
+haze, but does not prove smoke or quantify the reflectance error. The RGB
+spot-check and SCL/AOT summaries should therefore be considered together; a
+local visual mask or a separately validated haze screen is needed before
+relying on this pair.
+
+### Processing-time estimate
+
+Sen2Cor's final cumulative elapsed-time entries in the four product logs give
+measured runtimes of 12:56, 13:43, 14:36, and 13:32 (54:47 total, sequential
+CPU processing). Preparation and registration were not separately timed, so
+their ranges below are planning estimates, not benchmark results.
+
+| Stage | Runtime for current data / planning estimate | Basis |
+|---|---:|---|
+| Sen2Cor, 4 scenes | 54 min 47 sec measured | Sum of the four Sen2Cor log totals |
+| Prepare six-band reflectance stacks and masks | 30–60 min estimated | Four full-tile 10 m scenes; each compressed stack is about 2.0–2.2 GB |
+| Register two pairs and write aligned outputs | 10–25 min estimated | Two full-tile outputs and common-valid masks |
+| Phase 2 end-to-end, initial run | About 1 hr 35 min–2 hr 20 min | Measured Sen2Cor plus estimated preparation and registration |
+
+These are machine- and storage-dependent estimates for the inspected CPU-only
+Windows machine. Sen2Cor logs provide per-scene timings; exact preparation and
+registration timings should be captured on a future clean run if tighter
+estimates are required. Existing outputs are skipped by the idempotent
+commands, so a rerun with outputs present is not a representative benchmark.
+
 ## Outputs and completion checks
 
 - `outputs/sen2cor/l2a/`: Sen2Cor L2A SAFE products.
@@ -109,7 +173,9 @@ guarantee freedom from haze or other residual atmospheric effects.
 
 The script is idempotent for completed Sen2Cor products and prepared stacks.
 All four Sen2Cor logs report successful termination, and each processed
-summary records the L2A gain and per-band offsets used. Before accepting
-registration for quantitative detection, inspect reflectance ranges, SCL
-masks, before/after panels, and each residual map, and evaluate independent
+summary records the L2A gain and per-band offsets used. The SCL mask is known
+to miss the visually apparent haze/smoke-like veil in the 2026-10-22 T43RGM
+spot-check. Before accepting registration for quantitative detection, inspect
+reflectance ranges, SCL masks, before/after panels, and each residual map;
+manually exclude suspect atmospheric contamination and evaluate independent
 stable check points.

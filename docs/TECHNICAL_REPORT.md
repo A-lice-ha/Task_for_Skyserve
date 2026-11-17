@@ -132,6 +132,36 @@ T43RGM 2026-10-22. The common-valid fractions are 89.2592% for the T43QBB
 pair and 99.9958% for the T43RGM pair. These are SCL-mask coverage values,
 not guarantees of cloud- or haze-free observations.
 
+### Cloud/shadow coverage and atmospheric quality
+
+Native 20 m SCL class counts show 0.0000% cloud/cirrus (classes 8/9/10) and
+0.0000% cloud shadow (class 3) in the 2026-10-22 T43RGM scene; the earlier
+2023-10-06 T43RGM scene has 0.0001% cloud/cirrus and 0.0000% shadow. The
+2023-05-12 T43QBB scene has 5.4475% cloud/cirrus and 0.2372% shadow. The
+2022-12-23 T43QBB scene has 0.0013% cloud/cirrus and 0.0000% shadow.
+
+The user's RGB spot-check of the 2026-10-22 scene nevertheless shows a broad
+diffuse veil consistent with haze or smoke-like contamination. The screenshot
+does not distinguish smoke from haze, thin cloud, or display/stretch effects.
+This confirms SCL's limitations for the observed scene: its nearly 100% valid
+mask does not establish atmospheric clarity, and suspect areas should not be
+used without visual review and conservative exclusion.
+
+Metadata-scaled Sen2Cor AOT (10 m) has median/P98 values of 0.372/0.401 for
+the earlier T43RGM scene and 0.419/0.443 for the later scene. The later
+scene's median is about 12.6% higher. This is consistent with investigating
+increased aerosol haze, but AOT is a processor estimate—not a ground-truth
+smoke detector or a validated pass/fail quality score. The full per-scene
+SCL/AOT/water-vapour results and interpretation are in
+[`PHASE_2_PREPROCESSING.md`](./PHASE_2_PREPROCESSING.md).
+
+Sen2Cor log totals measure 12:56, 13:43, 14:36, and 13:32 per scene (54:47
+for all four, sequentially). Preparation of the four full-tile stacks is
+estimated at 30–60 minutes, and registration of both pairs at 10–25 minutes;
+these latter stages were not separately timed. Thus a first Phase 2 run is
+budgeted at approximately 1 hr 35 min–2 hr 20 min on the inspected CPU-only
+machine. See the Phase 2 document for assumptions and caveats.
+
 Run the implemented stages from the repository root:
 
 ```powershell
