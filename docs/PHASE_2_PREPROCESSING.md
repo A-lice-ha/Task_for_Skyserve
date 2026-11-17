@@ -79,6 +79,16 @@ offset between dates. The ORB/RANSAC tie-point metrics below measure fitted
 pairwise residuals instead, and independent stable control points are still
 needed to validate pair alignment.
 
+The user identifies the later T43RGM product as
+`S2A_MSIL2A_20261022T053241_N9999_R105_T43RGM_20261117T084830.SAFE.reflectance`
+and reports visually comparing co-registered imagery for Delhi and Mumbai,
+finding approximately one pixel of remaining displacement in both cases.
+On the 10 m output grid this corresponds to roughly 10 m. This is a useful
+visual residual check, but its point locations, measurement method, and
+uncertainty are not documented and it is not an independent checkpoint
+measurement. It should be considered alongside the fitted tie-point residual
+statistics rather than replacing them.
+
 ## Measured preprocessing and registration results
 
 The four supplied products were processed through Sen2Cor, prepared as

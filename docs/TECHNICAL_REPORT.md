@@ -157,6 +157,15 @@ the basemap and selected points also have positional uncertainty. Similar
 absolute offsets across dates do not demonstrate that relative alignment is
 accurate. Independent stable control points are still required.
 
+The user identifies the later T43RGM raster as
+`S2A_MSIL2A_20261022T053241_N9999_R105_T43RGM_20261117T084830.SAFE.reflectance`
+and reports a visual comparison of co-registered imagery in Delhi and Mumbai
+with about one pixel of residual displacement in each location (approximately
+10 m on the output grid). This qualitative assessment is not an independent
+checkpoint measurement; locations, method, and uncertainty were not recorded.
+It is a useful visual cross-check but does not supersede the tie-point residual
+statistics or independent stable-point validation.
+
 Metadata-scaled Sen2Cor AOT (10 m) has median/P98 values of 0.372/0.401 for
 the earlier T43RGM scene and 0.419/0.443 for the later scene. The later
 scene's median is about 12.6% higher. This is consistent with investigating
@@ -247,18 +256,55 @@ empirically on this hardware before any training commitment.
 ## 5. Labels, training, and tuning
 
 Training cannot be claimed until independent labels are created and checked.
-Candidate regions may be proposed using spectral/index differences, but those
-maps are not ground truth. Human reviewers should assign class, confidence,
-date pair, and evidence, and retain an uncertain class where cause is unclear.
-External datasets may be considered for pretraining only after documenting
-license, sensor/domain differences, label definitions, and the risk of domain
-shift.
+A windowed, masked dataset reader for human-annotated six-band patches is now
+implemented in [`../src/training/dataset.py`](../src/training/dataset.py).
+Unannotated and invalid pixels are ignored rather than assumed to be
+no-change, and conflicting overlapping labels fail explicitly. No reviewed
+annotations, spatially blocked splits, training run, or tuning trials exist
+yet. Candidate regions may be proposed using spectral/index differences, but
+those maps are not ground truth. Human reviewers should assign class,
+confidence, date pair, and evidence, and retain an uncertain class where cause
+is unclear. The later T43RGM scene's visible haze and reported one-pixel
+residual in Delhi/Mumbai are documented in Phase 2 and must be considered when
+selecting trusted annotations. External datasets may be considered for
+
+A QGIS-ready GeoPackage at
+[`../data/labels/metro_label_grids.gpkg`](../data/labels/metro_label_grids.gpkg)
+contains 144 indexed 10 km blocks and an empty detailed-polygon annotation
+layer for each city. The grids follow the full T43QBB (Mumbai) and T43RGM
+(Delhi) raster footprints and have not yet been clipped to verified municipal
+study-area boundaries or assigned to spatial splits. Each block's common-valid
+percentage is SCL-mask coverage, not an atmospheric quality assessment. External datasets may be considered for
+pretraining only after documenting license, sensor/domain differences, label
+definitions, and the risk of domain shift.
 
 The planned label format is georeferenced polygons with at least:
 `change_class`, `confidence`, `annotator`, `notes`, and source/evidence
-references. Patch splits should be geographically blocked, with a separation
-buffer, to reduce spatial leakage. No labeled dataset, train/validation/test
-split, or trained checkpoint currently exists.
+references. Patch splits should use approximately 10 km macro-blocks in each
+city, whole-block conventional train/validation/test assignment, a 2 km no-use
+buffer between split zones, and an additional untouched zero-shot block per
+city. The intended 70/15/15 area proportions apply to the conventional splits;
+the additional holdouts are reported separately. Candidate named fringe
+holdouts are not accepted until their coverage in the supplied rasters is
+verified.
+
+The current acquisition metadata gives T43QBB a 140-day pair (2022-12-23 to
+2023-05-12) and T43RGM a 1,112-day pair (2023-10-06 to 2026-10-22). This
+appears consistent with Mumbai (T43QBB) and Delhi (T43RGM), respectively,
+based on MGRS latitude bands and the stated study areas; verify the exact AOI
+footprints before labeling. Each city has only one pair in the current data,
+so both temporal regimes are not represented in each city. No labeled
+dataset, spatial split, or trained checkpoint currently exists.
+
+Temporal normalization and confounder handling are evaluation choices, not
+assumptions: independent per-image percentile clipping may erase useful
+between-date reflectance differences, and SWIR does not eliminate haze
+effects. The Phase 4 protocol keeps metadata-scaled reflectance, fits
+normalization statistics on training data only, and treats per-image clipping
+as an ablation. It also recommends separate reporting for confirmed
+target-class metrics, ambiguity/non-target rejection, and accepted-area
+coverage. Tidal, vegetation, shadow, and haze effects must not be silently
+relabeled as no-change.
 
 The implementation plan proposes a baseline using AdamW, learning rate
 1e-4, weight decay 1e-4, weighted BCE plus Dice, flips/rotations and
@@ -320,7 +366,7 @@ or this report is not a substitute.
 | Data audit and execution requirements | Metadata/file audit completed; cloud/usable-pixel and full decode checks remain |
 | Preprocessing and registration | All four products processed with Sen2Cor; metadata-driven six-band L2A stacks and SCL masks prepared; two same-tile pairs registered and coverage/residual metrics recorded; visual mask/alignment review and independent check-point validation remain |
 | Ground/onboard architecture | Both PyTorch models implemented and synthetic-forward tested; CPU patch profiling recorded; no training or target-device validation |
-| Training and tuning | No labels or training runs |
+| Training and tuning | Windowed labeled-patch reader implemented; no reviewed annotations or spatial splits, so training and tuning remain blocked |
 | Change analysis and validation | No detections or validation results |
 | Quantization | No model or measurements |
 | Reproducibility and AI record | Requirements/dependencies and data manifest exist; workflow and complete AI transcript remain |

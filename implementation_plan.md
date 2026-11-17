@@ -224,10 +224,14 @@ Since the assignment provides **no ground-truth labels**, we must create them:
    ```
 
 #### Patch Extraction
+- [x] Implement windowed dataset reader for six-band annotated patches with common-valid masking and ignore-index handling
+- [x] Generate 10 km macro-block grids and empty city-specific polygon annotation layers for the T43QBB Mumbai and T43RGM Delhi raster footprints; grids are not yet clipped to verified municipal AOIs
 - [ ] Tile co-registered image pairs into 256×256 patches at 10m resolution
 - [ ] Stratified sampling: ensure balanced representation of change/no-change
-- [ ] Geographic split: assign patches to train/val/test by spatial block (prevent leakage)
-- [ ] Minimum 70% train / 15% val / 15% test by area, with ≥ 1km buffer between splits
+- [ ] Geographic split: assign whole ~10×10 km macro-blocks from both cities to train/val/test before patching; keep same-location dates in one split
+- [ ] Target approximately 70% train / 15% validation / 15% conventional test by labeled area, with a 2 km no-use buffer between split zones; additionally reserve one untouched zero-shot geographic test block per city
+
+**Current blocker:** no reviewed labels exist yet. Training, class balancing, and hyperparameter search must wait until annotations and spatially separated validation/test splits are prepared. Current product metadata gives T43QBB a 140-day (2022-12-23 to 2023-05-12) gap and T43RGM a 1,112-day (2023-10-06 to 2026-10-22) gap. This appears consistent with Mumbai (T43QBB) and Delhi (T43RGM), respectively, based on the MGRS latitude bands and stated study areas; verify the exact AOI footprints before labeling. See `docs/PHASE_4_TRAINING.md`.
 
 ### 4.2 Training Configuration
 
@@ -247,7 +251,7 @@ Since the assignment provides **no ground-truth labels**, we must create them:
 - [ ] Apply inverse-frequency class weights to loss function
 - [ ] Use Focal Loss (γ=2) to down-weight easy negatives
 - [ ] Oversample rare change classes during patch extraction
-- [ ] **Specifically address false positives from:** seasonal vegetation (NDVI mask gating), water fluctuation (NDWI mask gating), shadow changes (illumination normalization)
+- [ ] **Specifically audit false positives from:** seasonal vegetation, tidal/water changes, cloud/shadow, haze, and illumination; use indices as supporting features/evidence, not automatic ground-truth gates
 
 ### 4.4 Hyperparameter Search
 - [ ] Use Optuna or Ray Tune for systematic search (Bayesian optimization)
