@@ -14,6 +14,14 @@ one-pixel residual displacement observed by the user in Delhi and Mumbai.
 Exclude suspect haze and registration-artifact areas from trusted labels, or
 annotate them as `uncertain` when their status cannot be resolved.
 
+With one temporal pair per city, this project can test geographic
+generalization within these particular acquisitions, but it cannot
+demonstrate temporal generalization or eliminate city/season/atmosphere
+confounding. A held-out block in the same scene is a geographic zero-shot
+test only; it shares acquisition conditions with training blocks. Leave-one-
+city-out is a confounded stress test, not a temporal test. Do not claim
+“zero temporal leakage” from the current data.
+
 ## Spatial evaluation design
 
 Use large, buffered blocks to prevent neighboring structures and patches from
@@ -105,12 +113,160 @@ treat it as a separate ablation and compare it on spatially held-out splits.
 NDVI, NDBI, MNDWI, and BSI can be supplementary channels or review aids;
 compute them from reflectance and do not treat threshold maps as ground truth.
 
+### Candidate GeoJSON generation
+
+The initial, deliberately unreviewed candidate windows can be regenerated
+with:
+
+```powershell
+.\venv\Scripts\python.exe src\training\generate_candidates.py --overwrite
+```
+
+The command writes `data/labels/candidates/mumbai_candidates.geojson` and
+`data/labels/candidates/delhi_candidates.geojson`. It reads metadata-scaled
+reflectance in B02, B03, B04, B08, B11, B12 order, the registered later date,
+and the pair common-valid mask. It computes
+`NDVI=(B08-B04)/(B08+B04)`,
+`NDBI=(B11-B08)/(B11+B08)`, and
+`MNDWI=(B03-B11)/(B03+B11)`.
+
+The current run produced 135 Mumbai windows (108 index-ranked, 27 random
+below-threshold) and 171 Delhi windows (114 index-ranked, 57 random
+below-threshold). These span the full Sentinel tile footprints, not only
+municipal limits; select the relevant Delhi NCR/Mumbai MMR AOIs before review.
+The files are unreviewed candidate artifacts. The generator's `--overwrite`
+option only replaces files whose features are still marked
+`unreviewed_candidate`; it refuses to replace a candidate file with reviewed
+features.
+
+Each polygon is a 256×256-pixel (2.56 km square) **review window**, not a
+predicted object boundary. For each pair, the generator calculates the
+pair-centered spread of the 10th/90th percentile changes in NDVI, NDBI, and
+MNDWI. Within each 10 km macro-block, it keeps up to the top 10% of eligible
+windows whose score reaches the screening threshold; it also randomly samples
+18% of below-threshold windows per block, with a fixed recorded seed (using
+ceiling for small block samples). The inclusion probability is recorded for
+each random window; deterministic ranked windows have no inclusion
+probability. Windows require at least 80% common-valid pixels and are kept
+wholly inside one macro-block. GeoJSON properties record pair dates,
+`spatial_block_id`, `split_assignment=unassigned`,
+`planned_split_buffer_m=2000` (planning metadata; no split buffer has yet been
+applied), review type, index-delta percentiles, and the fraction satisfying
+the proposed `ΔMNDWI < -0.3 AND ΔNDBI > 0.1` rule.
+
+The water rule is an evidence statistic only, not a reliable bridge detector:
+it can fire on tides, exposed soil, seasonal change, haze, or registration
+residuals. Pair-centered ranking reduces the effect of a global index shift
+but can miss broad real change. Random windows reduce threshold-selection
+bias but do not make sampling fully representative; inspect candidates and
+also deliberately search for subtle changes outside them. The generator is
+for review prioritization/training-candidate discovery only. Do not use its
+enriched windows as a test set or claim unbiased precision/recall. Keep test
+blocks exhaustively reviewed, or use a probability sample with known
+inclusion probabilities. Every feature
+starts with `review_status=unreviewed_candidate`, `change_class=null`,
+`confidence=unreviewed`, and an unassigned split. These files are not training
+labels and must not be passed to the labeled-patch reader until reviewed and
+converted to the accepted label schema. The generated polygons remain in
+EPSG:4326 for QGIS interoperability. The candidate properties document a
+no-future-reference policy: historical OSM may only be consulted at or before
+T2, and no post-T2 imagery/records may decide the label. Record any reference
+date in `notes`; if the two Sentinel dates are inconclusive, use `uncertain`
+or leave the region unlabeled. This is a declared review protocol, not an
+automated technical enforcement.
+
+The 2022-12-23 to 2023-05-12 Mumbai pair spans post-monsoon/dry-season to
+pre-monsoon conditions. L1C metadata mean solar zenith changes from 46.52° to
+17.09°, and azimuth from 156.16° to 91.43°; vegetation senescence,
+shadow/BRDF changes, water/tide state, and higher later-scene aerosol and
+water-vapour estimates should be reviewed as potential confounders. Delhi's
+2023-10-06 and 2026-10-22 dates are 16 days apart in calendar position but
+1,112 days apart in elapsed time. Mean solar zenith changes from 36.12° to
+41.49° and azimuth from 155.53° to 160.20°. Harvest and post-monsoon haze are
+plausible Delhi confounders, not confirmed causes for any particular pixel.
+Record scene-specific evidence rather than assigning a confounder solely from
+season.
+
+## Transfer learning and training safeguards
+
+The current CPU models are baselines, not a requirement to use deep transfer
+learning. If external data are used:
+
+- OSCD is the closest listed pretraining source because it contains Sentinel-2
+  imagery; check its geographic coverage and exclude any overlapping test AOI
+  or target study areas before pretraining.
+- LEVIR-CD and WHU building data are very high-resolution RGB. Do not resize
+  their imagery to 10 m and assume that it provides useful Sentinel-2
+  representations; roof/road details vanish under that resampling. Use only
+  if a clearly justified transfer experiment can be designed and fully
+  fine-tuned/evaluated on Sentinel-2.
+- S2Looking has off-nadir high-resolution imagery and a substantial
+  resolution/sensor mismatch; it is not direct Sentinel-2 pretraining.
+
+For the seven-logit ground model, use masked multi-class cross-entropy
+(`ignore_index=255`) and optionally multi-class Dice, not binary
+cross-entropy. Apply geometric transforms identically to both dates and the
+label. Any date-specific radiometric augmentation should be justified and
+validated because arbitrary independent brightness/haze jitter can alter the
+change signal. Test before/after swapping as a sanity check; if dates are
+swapped, construction and demolition labels must also be exchanged.
+
+Avoid a large hyperparameter search on the CPU-only laptop. Begin with a
+non-deep CVA/index baseline and a random forest on reviewed spectral features,
+then compare to the Siamese model only if labels support it. Use spatial
+block-wise validation and a few fixed seeds; touch the final test sample once.
+The existing model profiling measured forward-only time, not the proposed
+training-step duration, so benchmark a real training step before estimating
+the search budget.
+
 Report confirmed structural-class precision/recall/F1 and IoU on reviewed
 target labels, with city, pair, and conventional/zero-shot split shown
 separately. Also report uncertain/non-target rejection rate and the fraction
 of pixels/area accepted for a target prediction (coverage). Treat uncertain
 labels as an abstention/ambiguity audit rather than counting them as ordinary
 correct target predictions; document the denominator for each metric.
+
+Candidate-enriched samples are appropriate for finding possible changes and
+training annotation, but not for estimating deployed precision. For test
+blocks, use exhaustive reviewed coverage or a probability sample with known
+inclusion probabilities and appropriate weights. Keep an untouched
+probability-based sample of below-threshold areas so subtle changes missed by
+the candidate ranking can be found. Report that candidate-set metrics
+represent agreement on the selected sample, not unbiased map accuracy or
+changed-area estimates.
+
+A practical small pilot is 3–4 buffered macro-blocks per city, chosen to
+include urban, peri-urban/agricultural, and hydrological/coastal contexts where
+present. Reserve a geographically separate test AOI within each city and
+review that AOI exhaustively or through a probability sample independent of
+the candidate ranking. A full 10×10 km block is 100 km² and may be too large
+to exhaustively label manually; define and record a smaller evaluation AOI
+inside its block if needed. Keep the candidate-enriched training annotations
+separate from this test sample. The current datasets still cannot establish
+temporal generalization because each city contributes only one date pair.
+
+Only consult time-bounded reference information. If OSM is used, use a
+historical snapshot dated at or before T2 and record its date; never use live
+OSM or imagery/records from after T2 to determine a label. If the two Sentinel
+dates do not establish the class/cause, label `uncertain` or leave the region
+unlabeled. If no independent date-matched high-resolution reference exists,
+describe the results as agreement with human-interpreted Sentinel-2 labels,
+not accuracy against independent ground truth.
+
+At 10 m, narrow roads, bridge decks, and individual buildings may be mixed
+within pixels; the reported approximately one-pixel registration residual
+further limits edge attribution. Keep the requested class names during
+annotation if useful, but record instance counts and avoid strong per-class
+performance claims for rare or sub-pixel classes. Report metrics only for
+classes with adequate independent examples in the relevant split, and state
+when a class cannot be evaluated.
+
+The current seven-class model head has `no_change`, `construction`,
+`demolition`, `road`, `bridge`, `infrastructure_other`, and `uncertain`.
+Before any supervised training, reconcile this with the proposed
+`change_category` / `non_target_subtype` taxonomy. Do not silently map
+vegetation, agriculture, tides, shadows, or haze to `no_change`; the current
+patch reader does not yet support a separate non-target loss category.
 
 ## Annotation format
 
@@ -124,9 +280,20 @@ class. The required per-feature properties are:
 {
   "type": "Feature",
   "properties": {
+    "feature_id": "MUM_T43QBB_R01024_C02048",
+    "region": "mumbai",
+    "spatial_block_id": "T43QBB_E0200_N2170",
+    "split_assignment": "unassigned",
+    "interval_type": "short_interval_cross_season",
+    "t1_date": "2022-12-23",
+    "t2_date": "2023-05-12",
+    "change_category": "target",
     "change_class": "construction",
+    "non_target_subtype": null,
     "confidence": "high",
     "annotator": "reviewer-id",
+    "evidence_date": null,
+    "confounder": null,
     "notes": "New structure visible in the later observation"
   },
   "geometry": {
@@ -172,10 +339,13 @@ dates, `common_pct` (Sen2Cor-mask valid fraction only), plus unassigned
 do not assign one change class to an entire 10 km block.
 
 Digitize detailed class polygons into the corresponding `*_labels` layer.
-Each label layer includes `label_id`, `block_id`, `change_class`, `confidence`,
-`annotator`, `confounder`, `notes`, `city`, `tile`, and `pair_id`. When
-labeling, populate `block_id` with the intersected macro-block ID and use the
-exact class codes and meanings below:
+Each label layer includes `feature_id`, `spatial_block_id`,
+`split_assignment`, `interval_type`, `t1_date`, `t2_date`,
+`change_category`, `change_class`, `non_target_subtype`, `confidence`,
+`annotator`, `evidence_date`, `confounder`, `notes`, `city`, `tile`, and
+`pair_id`. Legacy `label_id` and `block_id` fields are retained for
+compatibility. Populate both block-ID fields with the intersected macro-block
+ID and use the exact class codes and meanings below:
 
 | Class code | Class | Labeling meaning |
 |---|---|---|
@@ -186,6 +356,17 @@ exact class codes and meanings below:
 | `bridge` | Bridge | New or materially changed bridge/crossing infrastructure |
 | `infrastructure_other` | Other infrastructure | Confirmed target infrastructure not covered by the classes above |
 | `uncertain` | Uncertain | Reviewed location where change cause/class cannot be established confidently |
+
+Set `change_category` to `target`, `no_change`, `non_target`, or `uncertain`.
+For `target`, set `change_class` to one of the structural classes. For
+`no_change`, use `change_class=no_change`. For `non_target`, leave
+`change_class` empty and use `non_target_subtype` such as `seasonal_veg`,
+`agriculture_cycle`, `hydrological_tidal`, `shadow_illumination`, `cloud`,
+`haze`, or `registration_artifact`. For `uncertain`, use
+`change_class=uncertain`. Fill `evidence_date` with the date of any dated
+reference consulted; it must not be later than T2. Confidence is annotation
+metadata only at present—the dataset reader does not yet convert it to a loss
+weight or support non-target subtypes as a separate training category.
 
 For known non-target dynamics, use `change_class=uncertain` when the distinction
 is unresolved and record a `confounder` such as `vegetation_agriculture`,

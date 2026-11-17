@@ -42,9 +42,18 @@ SCENES = (
 LABEL_FIELDS = {
     "label_id": "str",
     "block_id": "str",
+    "feature_id": "str",
+    "spatial_block_id": "str",
+    "split_assignment": "str",
+    "interval_type": "str",
+    "t1_date": "str",
+    "t2_date": "str",
+    "change_category": "str",
     "change_class": "str",
+    "non_target_subtype": "str",
     "confidence": "str",
     "annotator": "str",
+    "evidence_date": "str",
     "confounder": "str",
     "notes": "str",
 }

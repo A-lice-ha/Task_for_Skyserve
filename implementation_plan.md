@@ -203,20 +203,30 @@ Since the assignment provides **no ground-truth labels**, we must create them:
    - Compute multi-index difference maps (NDVI diff, NDBI diff, brightness diff)
    - Apply thresholding to generate candidate change regions
    - Manually review and annotate using QGIS or Label Studio
-   - Cross-reference with OSM building/road data (if dates align)
-2. **External datasets for pre-training / transfer learning:**
-   - LEVIR-CD (building change detection dataset, 256×256 patches, Sentinel/GE imagery)
-   - WHU Building Change Detection Dataset
-   - OSCD (Onera Satellite Change Detection, actual Sentinel-2 pairs)
-   - S2Looking dataset
+   - Use historical OSM only from snapshots dated at or before T2; never use current OSM or post-T2 evidence to decide a label
+   - If the two Sentinel-2 dates do not resolve the change cause, label `uncertain` or leave the area unlabeled
+2. **External data for pre-training / transfer learning (optional):**
+   - Prioritize OSCD only after checking geographic overlap with target/test areas
+   - Do not naively downsample very-high-resolution LEVIR-CD/WHU imagery to 10 m; reassess sensor/resolution compatibility before any transfer experiment
+   - Treat S2Looking as off-nadir/high-resolution data, not directly matched Sentinel-2 pretraining
 3. **Annotation schema (GeoJSON):**
    ```json
    {
      "type": "Feature",
      "properties": {
+       "feature_id": "MUM_T43QBB_R01024_C02048",
+       "region": "mumbai",
+       "spatial_block_id": "T43QBB_E0200_N2170",
+       "split_assignment": "unassigned",
+       "interval_type": "short_interval_cross_season",
+       "t1_date": "2022-12-23",
+       "t2_date": "2023-05-12",
+       "change_category": "target",
        "change_class": "construction",
+       "non_target_subtype": null,
        "confidence": "high",
        "annotator": "human",
+       "evidence_date": null,
        "notes": "new building footprint visible"
      },
      "geometry": { "type": "Polygon", "coordinates": [...] }
@@ -226,12 +236,13 @@ Since the assignment provides **no ground-truth labels**, we must create them:
 #### Patch Extraction
 - [x] Implement windowed dataset reader for six-band annotated patches with common-valid masking and ignore-index handling
 - [x] Generate 10 km macro-block grids and empty city-specific polygon annotation layers for the T43QBB Mumbai and T43RGM Delhi raster footprints; grids are not yet clipped to verified municipal AOIs
+- [x] Generate unreviewed index-ranked and random below-threshold candidate review windows with pair/date and spatial-block metadata; these are not labels or evaluation samples
 - [ ] Tile co-registered image pairs into 256×256 patches at 10m resolution
 - [ ] Stratified sampling: ensure balanced representation of change/no-change
 - [ ] Geographic split: assign whole ~10×10 km macro-blocks from both cities to train/val/test before patching; keep same-location dates in one split
 - [ ] Target approximately 70% train / 15% validation / 15% conventional test by labeled area, with a 2 km no-use buffer between split zones; additionally reserve one untouched zero-shot geographic test block per city
 
-**Current blocker:** no reviewed labels exist yet. Training, class balancing, and hyperparameter search must wait until annotations and spatially separated validation/test splits are prepared. Current product metadata gives T43QBB a 140-day (2022-12-23 to 2023-05-12) gap and T43RGM a 1,112-day (2023-10-06 to 2026-10-22) gap. This appears consistent with Mumbai (T43QBB) and Delhi (T43RGM), respectively, based on the MGRS latitude bands and stated study areas; verify the exact AOI footprints before labeling. See `docs/PHASE_4_TRAINING.md`.
+**Current blocker:** no reviewed labels exist yet. Training, class balancing, and hyperparameter search must wait until annotations and spatially separated validation/test splits are prepared. Each city has only one temporal pair, so the current data cannot establish temporal generalization or eliminate city/season/atmosphere confounding. Current product metadata gives T43QBB a 140-day (2022-12-23 to 2023-05-12) gap and T43RGM a 1,112-day (2023-10-06 to 2026-10-22) gap. This appears consistent with Mumbai (T43QBB) and Delhi (T43RGM), respectively, based on the raster footprints; verify the intended AOIs before labeling. See `docs/PHASE_4_TRAINING.md`.
 
 ### 4.2 Training Configuration
 
@@ -241,7 +252,7 @@ Since the assignment provides **no ground-truth labels**, we must create them:
 | Batch size | 16 | {8, 16, 32} |
 | Optimizer | AdamW | {Adam, AdamW, SGD+momentum} |
 | Weight decay | 1e-4 | [1e-5, 1e-3] |
-| Loss function | BCE + Dice (weighted) | {BCE, Focal, Dice, Combo} |
+| Loss function | Masked multi-class cross-entropy + multi-class Dice (ignore_index=255) | {cross-entropy, focal, Dice, Combo} |
 | Augmentation | Flip + Rotate + Color jitter | ± Elastic, Cutout, MixUp |
 | Epochs | 100 | Early stopping patience=15 |
 | Scheduler | CosineAnnealing | {Step, Cosine, OnePlateau} |
