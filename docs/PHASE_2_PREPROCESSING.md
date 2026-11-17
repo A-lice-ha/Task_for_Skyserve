@@ -18,7 +18,10 @@ product at 10 m output resolution, keeps output products under
 The batch file uses unquoted paths internally. The wrapper resolves Windows
 8.3 short paths and supplies the short user-profile path to avoid failures
 caused by spaces in the Windows account name. Sen2Cor's configuration is kept
-in its normal per-user Documents location.
+in its normal per-user Documents location. Standard output and errors are
+captured with `subprocess.run(check=True, text=True, capture_output=True)` and
+written to the per-product log when processing completes; the subprocess has a
+30-minute timeout. A nonzero exit includes the failure details and log path.
 
 The `prepare` stage reads `MTD_MSIL2A.xml`, requires the product's
 `BOA_QUANTIFICATION_VALUE` and selected per-band `BOA_ADD_OFFSET` values, and
@@ -70,13 +73,15 @@ correct local terrain/parallax distortions.
 - `outputs/sen2cor/l2a/`: Sen2Cor L2A SAFE products.
 - `outputs/sen2cor/logs/`: Sen2Cor stdout/stderr per product.
 - `outputs/processed/`: metadata-scaled six-band reflectance stacks and
-  per-date validity masks.
+  per-date validity masks, plus a per-product summary CSV with SCL-valid area,
+  grid metadata, and the gain/offset values read from the product metadata.
 - `outputs/registered/`: aligned later-date stacks, common-valid masks, and
   registration metric CSV files.
 
 The script is idempotent for completed Sen2Cor products and prepared stacks.
 Review log files and metadata before continuing if an output is incomplete.
-After running the stages, record per-scene valid-area percentages, inspect
-reflectance ranges and before/after panels, and review each registration
-residual map before accepting the outputs. Those measurements have not yet
-been produced.
+After running the stages, inspect reflectance ranges and before/after panels,
+and review each registration residual map before accepting the outputs. The
+first processed product (2022-12-23, T43QBB) has 99.99% valid pixels according
+to the generated Sen2Cor SCL mask. This is only the first scene's mask-derived
+coverage, not a cloud-free guarantee or a complete pair assessment.

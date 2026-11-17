@@ -108,6 +108,8 @@ reproducible preprocessing sequence is:
    The wrapper invokes it with `subprocess`, redirects per-product logs, and
    uses Windows short paths because the batch file contains unquoted paths
    that otherwise break when the Windows user profile contains spaces.
+   Standard output and errors are captured in a per-product log, with a
+   30-minute subprocess timeout.
 3. Convert L2A DN to reflectance using
    `(DN + BOA_ADD_OFFSET) / BOA_QUANTIFICATION_VALUE` from that L2A product's
    metadata. The implementation fails if the gain or any selected band's
@@ -121,6 +123,12 @@ reproducible preprocessing sequence is:
    residuals, transform, and RMSE in CSV.
 6. Intersect the two per-date validity masks and save the common-valid mask
    beside the registered image.
+
+The first processed scene (2022-12-23, T43QBB) has 99.99% SCL-valid pixels in
+the current preprocessing summary. This single-scene percentage is not a
+pairwise valid-area result and does not guarantee absence of haze or residual
+cloud contamination. Coverage summaries for the other three products and the
+common valid areas for each pair remain pending.
 
 Run the implemented stages from the repository root:
 
@@ -250,7 +258,7 @@ or this report is not a substitute.
 | Assignment area | Status |
 |---|---|
 | Data audit and execution requirements | Metadata/file audit completed; cloud/usable-pixel and full decode checks remain |
-| Preprocessing and registration | Sen2Cor subprocess, metadata-driven L2A reflectance scaling, cloud/invalid masking, and feature-registration workflow implemented; product processing and pairwise measurements pending |
+| Preprocessing and registration | Sen2Cor subprocess, metadata-driven L2A reflectance scaling, cloud/invalid masking, and feature-registration workflow implemented; one product processed and summarized; remaining Sen2Cor runs, pair preparation, and pairwise measurements pending |
 | Ground/onboard architecture | Candidates documented; neither implemented nor benchmarked |
 | Training and tuning | No labels or training runs |
 | Change analysis and validation | No detections or validation results |

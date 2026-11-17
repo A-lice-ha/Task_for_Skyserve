@@ -4,10 +4,12 @@ from __future__ import annotations
 
 import argparse
 import csv
+import json
 import os
 import re
 import subprocess
 import sys
+import time
 import xml.etree.ElementTree as ET
 from contextlib import ExitStack
 from dataclasses import dataclass
@@ -140,6 +142,14 @@ def _find_l2a_products(root: Path) -> list[Path]:
     )
 
 
+def _scene_key(name: str) -> str:
+    tile = re.search(r"_(T\d{2}[A-Z]{3})_", name)
+    sensing_time = re.search(r"_(\d{8}T\d{6})_N\d{4}_", name)
+    if not tile or not sensing_time:
+        raise ValueError(f"Could not read tile and sensing time from {name}")
+    return f"{tile.group(1)}_{sensing_time.group(1)}"
+
+
 def run_sen2cor(
     product: Path,
     sen2cor_bat: Path,
@@ -155,7 +165,7 @@ def run_sen2cor(
     if resolution not in (10, 20, 60):
         raise ValueError("Sen2Cor resolution must be 10, 20, or 60")
 
-    output_dir = (output_root / "l2a" / product.stem).resolve()
+    output_dir = (output_root / "l2a" / _scene_key(product.name)).resolve()
     output_dir.mkdir(parents=True, exist_ok=True)
     existing = _find_l2a_products(output_dir)
     if existing:
@@ -167,7 +177,10 @@ def run_sen2cor(
     short_bat = _short_windows_path(sen2cor_bat)
     short_product = _short_windows_path(product, preserve_name=True)
     short_output = _short_windows_path(output_dir, preserve_name=True)
-    command = f"call {short_bat} {short_product} --output_dir {short_output} --resolution {resolution}"
+    command = (
+        f"call {short_bat} {short_product} --output_dir {short_output} "
+        f"--resolution {resolution}"
+    )
     environment = os.environ.copy()
     environment["USERPROFILE"] = short_userprofile
     environment.pop("PYTHONHOME", None)
@@ -175,21 +188,50 @@ def run_sen2cor(
     environment.pop("PYTHONEXECUTABLE", None)
     log_path = output_root / "logs" / f"{product.name}.log"
     log_path.parent.mkdir(parents=True, exist_ok=True)
-    print(f"Running Sen2Cor for {product.name}; log: {log_path}")
-    with log_path.open("w", encoding="utf-8", errors="replace") as log_file:
+    command_line = [os.environ.get("COMSPEC", "cmd.exe"), "/d", "/c", command]
+    print(f"Running Sen2Cor for {product.name}; log: {log_path}", flush=True)
+    started = time.monotonic()
+    try:
         result = subprocess.run(
-            [os.environ.get("COMSPEC", "cmd.exe"), "/d", "/c", command],
+            command_line,
             cwd=short_output,
             env=environment,
-            stdout=log_file,
-            stderr=subprocess.STDOUT,
-            check=False,
+            check=True,
+            text=True,
+            capture_output=True,
+            timeout=1800,
         )
-    if result.returncode:
+    except subprocess.TimeoutExpired as error:
+        stdout = error.stdout or ""
+        stderr = error.stderr or ""
+        if isinstance(stdout, bytes):
+            stdout = stdout.decode(errors="replace")
+        if isinstance(stderr, bytes):
+            stderr = stderr.decode(errors="replace")
+        log_path.write_text(stdout + stderr, encoding="utf-8", errors="replace")
+        raise RuntimeError(
+            f"Sen2Cor exceeded the 1800-second timeout for {product.name}; "
+            f"inspect {log_path}"
+        ) from error
+    except subprocess.CalledProcessError as error:
+        stdout = error.stdout or ""
+        stderr = error.stderr or ""
+        log_path.write_text(
+            stdout + stderr, encoding="utf-8", errors="replace"
+        )
         raise RuntimeError(
             f"Sen2Cor failed for {product.name} with exit code "
-            f"{result.returncode}; inspect {log_path}"
-        )
+            f"{error.returncode}; inspect {log_path}. "
+            f"Error details: {stderr[-2000:] or stdout[-2000:]}"
+        ) from error
+    log_path.write_text(
+        result.stdout + result.stderr, encoding="utf-8", errors="replace"
+    )
+    elapsed = time.monotonic() - started
+    print(
+        f"Sen2Cor completed {product.name} in {elapsed:.1f}s; log: {log_path}",
+        flush=True,
+    )
     products = _find_l2a_products(output_dir)
     if len(products) != 1:
         raise RuntimeError(
@@ -243,6 +285,52 @@ def _windows(dataset: rasterio.io.DatasetReader):
             )
 
 
+def _write_product_summary(
+    product: Path,
+    output_path: Path,
+    mask_path: Path,
+    radiometry: Radiometry,
+) -> Path:
+    summary_path = output_path.with_name(
+        output_path.name.removesuffix(".reflectance.tif") + ".summary.csv"
+    )
+    with rasterio.open(mask_path) as valid_dataset:
+        valid_pixels = 0
+        total_pixels = valid_dataset.width * valid_dataset.height
+        for window in _windows(valid_dataset):
+            valid_pixels += int(
+                np.count_nonzero(valid_dataset.read(1, window=window))
+            )
+        pixel_area_m2 = abs(
+            valid_dataset.transform.a * valid_dataset.transform.e
+            - valid_dataset.transform.b * valid_dataset.transform.d
+        )
+        row = {
+            "product": product.name,
+            "crs": str(valid_dataset.crs),
+            "width": valid_dataset.width,
+            "height": valid_dataset.height,
+            "pixel_area_m2": pixel_area_m2,
+            "total_pixels": total_pixels,
+            "valid_pixels": valid_pixels,
+            "valid_percent": 100.0 * valid_pixels / total_pixels,
+            "valid_area_km2": valid_pixels * pixel_area_m2 / 1_000_000,
+            "gain_tag": radiometry.gain_tag,
+            "gain": radiometry.gain,
+            "offset_tag": radiometry.offset_tag,
+            "band_offsets": json.dumps(radiometry.offsets, sort_keys=True),
+        }
+    with summary_path.open("w", newline="", encoding="utf-8") as file:
+        writer = csv.DictWriter(file, fieldnames=row.keys())
+        writer.writeheader()
+        writer.writerow(row)
+    print(
+        f"{product.name}: {row['valid_percent']:.2f}% valid "
+        f"({row['valid_area_km2']:.2f} km^2)"
+    )
+    return summary_path
+
+
 def prepare_product(product: Path, output_root: Path) -> Path:
     metadata_path = product / "MTD_MSIL2A.xml"
     if not metadata_path.is_file():
@@ -254,7 +342,12 @@ def prepare_product(product: Path, output_root: Path) -> Path:
     output_root.mkdir(parents=True, exist_ok=True)
     output_path = output_root / f"{product.name}.reflectance.tif"
     mask_path = output_root / f"{product.name}.valid.tif"
+    summary_path = output_path.with_name(
+        output_path.name.removesuffix(".reflectance.tif") + ".summary.csv"
+    )
     if output_path.exists() and mask_path.exists():
+        if not summary_path.exists():
+            _write_product_summary(product, output_path, mask_path, radiometry)
         return output_path
     if output_path.exists() or mask_path.exists():
         raise FileExistsError(
@@ -350,6 +443,7 @@ def prepare_product(product: Path, output_root: Path) -> Path:
                 valid &= ~np.isin(scl_values, tuple(SCL_INVALID_CLASSES))
                 output.write_mask(valid.astype(np.uint8) * 255, window=window)
                 valid_output.write(valid.astype(np.uint8), 1, window=window)
+    _write_product_summary(product, output_path, mask_path, radiometry)
     return output_path
 
 
@@ -595,8 +689,6 @@ def register_pair(
                 valid = before_valid & (after_valid > 0)
                 valid_output.write(valid.astype(np.uint8), 1, window=window)
 
-    metrics["registration_rmse_threshold_m"] = 20.0
-    metrics["meets_20m_threshold"] = int(metrics["rmse_m"] <= 20.0)
     metrics["pixel_transform_a"] = affine.a
     metrics["pixel_transform_b"] = affine.b
     metrics["pixel_transform_c"] = affine.c
@@ -620,10 +712,9 @@ def _find_pair_products(products: list[Path]) -> list[tuple[str, Path, Path]]:
     by_tile: dict[str, list[Path]] = {}
     for product in products:
         name = product.name
-        tile_match = re.search(r"_T(\d[A-Z]{3})_", name)
-        date_match = re.search(r"_(\d{8}T\d{6})_N\d{4}_", name)
-        if not tile_match or not date_match:
-            raise ValueError(f"Could not read tile/date from L2A product {name}")
+        tile_match = re.search(r"_(T\d{2}[A-Z]{3})_", name)
+        if not tile_match:
+            raise ValueError(f"Could not read tile from L2A product {name}")
         tile = tile_match.group(1)
         by_tile.setdefault(tile, []).append(product)
 

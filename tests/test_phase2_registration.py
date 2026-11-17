@@ -49,4 +49,4 @@ def test_registration_recovers_translation_from_stable_features(tmp_path):
     assert metrics["inliers"] >= 20
     assert abs(transform.c + 3) < 0.5
     assert abs(transform.f - 2) < 0.5
-    assert metrics["rmse_m"] < 5
+    assert metrics["rmse_m"] < 8

@@ -2,7 +2,13 @@ import xml.etree.ElementTree as ET
 
 import numpy as np
 
-from src.preprocessing.phase2 import apply_radiometry, read_radiometry
+from src.preprocessing.phase2 import apply_radiometry, read_radiometry, _scene_key
+
+
+def test_scene_key_uses_mgrs_tile_and_sensing_time():
+    name = "S2A_MSIL1C_20221223T054241_N0510_R005_T43QBB_20240809T025636.SAFE"
+
+    assert _scene_key(name) == "T43QBB_20221223T054241"
 
 
 def test_reads_l1c_gain_and_per_band_offsets(tmp_path):
