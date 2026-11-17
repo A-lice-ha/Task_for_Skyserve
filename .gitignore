@@ -1,0 +1,29 @@
+# Sentinel-2 source products are large; keep the assignment data local.
+*.SAFE/
+*.SAFE.zip
+
+# Local and processed geospatial data.
+/data/raw/
+/data/processed/
+
+# Generated maps, evidence, reports, and model artifacts.
+/outputs/maps/
+/outputs/evidence/
+/outputs/models/
+/outputs/reports/
+
+# Model checkpoints and weights.
+*.ckpt
+*.pt
+*.pth
+*.safetensors
+
+# Python environments, bytecode, and test/tool caches.
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.ipynb_checkpoints/
