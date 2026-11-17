@@ -117,19 +117,19 @@ Cross-tile comparison (T43QBB vs T43RGM) is generally **not valid** for pixel-le
 - [x] Implement metadata-based radiometric scaling; L1C uses per-band `RADIO_ADD_OFFSET` and `QUANTIFICATION_VALUE`, while Sen2Cor output uses `BOA_ADD_OFFSET` and `BOA_QUANTIFICATION_VALUE`
 - [x] Implement six-band GeoTIFF stacks with CRS and transform metadata
 - [x] Implement 20m-to-10m reflectance resampling (bilinear) and SCL resampling (nearest); no 60m bands are included in the initial stack
-- [ ] Run preparation and inspect reflectance ranges
+- [x] Run preparation for all four products and record metadata/coverage summaries; visual reflectance review remains
 
 ### 2.2 Atmospheric Correction (L1C → Surface Reflectance)
 - [x] Select Sen2Cor (ESA's atmospheric correction processor) to produce L2A bottom-of-atmosphere reflectance
 - [x] Implement subprocess execution via the supplied `L2A_Process.bat`, with per-product outputs and logs
-- [ ] Run Sen2Cor on all four products and review logs / L2A metadata
+- [x] Run Sen2Cor on all four products and review logs / L2A metadata
 - [ ] Compare reflectance over invariant targets and decide if further relative normalization is needed
 
 ### 2.3 Cloud & Shadow Masking
 - [x] Implement use of Sen2Cor scene classification output for invalid-pixel masking
 - [x] Implement per-date validity masks for nodata, defective pixels, cloud shadow, unclassified, cloud, cirrus, and snow
 - [ ] Review Sen2Cor SCL masks against imagery and decide if additional spectral/shadow screening is needed
-- [ ] Report measured % usable area per image
+- [x] Report measured SCL-valid area per image; visual mask review remains
 
 ### 2.4 Geometric Co-registration
 - [ ] **Within-tile pairs** (same MGRS tile): images should already share the same UTM grid, but sub-pixel misalignment is expected
@@ -137,12 +137,12 @@ Cross-tile comparison (T43QBB vs T43RGM) is generally **not valid** for pixel-le
 - [x] Implement warping of the later observation to the earlier observation's grid
 - [ ] **Measure registration error:** review the per-pair tie-point RMSE/median and independent stable check points; geometric metadata's ~20m absolute-location value is not a substitute
 - [ ] **Cross-tile consideration:** compute geographic overlap between T43QBB and T43RGM footprints. If no overlap, document this and proceed with within-tile pairs only
-- [ ] **False detection risk:** document how 1-pixel misregistration at 10m creates edge artifacts that mimic building-scale changes
+- [x] **False detection risk:** document how 1-pixel misregistration at 10m creates edge artifacts that mimic building-scale changes
 
 ### 2.5 Resolution Harmonization
 - [x] Implement shared 10m grids and a common-valid mask for each same-tile pair
 - [x] Implement registered GeoTIFF output with transform and registration metrics
-- [ ] Run pair registration, inspect outputs, and record residual/coverage measurements
+- [x] Run pair registration and record residual/coverage measurements; visual output and independent check-point review remain
 
 ---
 

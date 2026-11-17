@@ -49,12 +49,13 @@ be revisited with visual quality checks.
 
 The `register` stage groups the prepared products by tile and estimates an
 affine transform from ORB features on B04. It uses RANSAC and reports match
-count, inlier ratio, residual RMSE/median in metres, estimated shift, and the
-pixel transform. The later observation is warped to the earlier observation's
-grid, and a common-valid mask is saved. The transform is only accepted after
-the tie-point count and inlier ratio checks pass. CSV values describe the
-fitted tie-point residuals; inspect spatial distribution and independent
-check points before using the pair for quantitative detection.
+count, inlier ratio, residual RMSE/median/percentiles in metres, 4x4 grid
+occupancy, estimated shift, and the pixel transform. The later observation is
+warped to the earlier observation's grid, and a common-valid mask is saved.
+The transform is only accepted after the tie-point count and inlier ratio
+checks pass. CSV values describe fitted tie-point residuals; inspect spatial
+distribution and independent check points before using the pair for
+quantitative detection.
 
 ## Geometric accuracy
 
@@ -68,6 +69,34 @@ local distortions remain too large for building-scale inference, those areas
 must be excluded or marked uncertain; a single global affine fit does not
 correct local terrain/parallax distortions.
 
+## Measured preprocessing and registration results
+
+The four supplied products were processed through Sen2Cor, prepared as
+metadata-scaled six-band stacks, and registered in the two same-tile pairs.
+Their SCL-derived valid areas are:
+
+| Tile / date | SCL-valid pixels | Valid area |
+|---|---:|---:|
+| T43QBB, 2022-12-23 | 99.9937% | 12,055.286 km² |
+| T43QBB, 2023-05-12 | 89.2650% | 10,761.823 km² |
+| T43RGM, 2023-10-06 | 99.9968% | 12,055.654 km² |
+| T43RGM, 2026-10-22 | 99.9990% | 12,055.923 km² |
+
+| Same-tile pair (earlier → later) | Common-valid area | Matches / inliers | Inlier ratio | Residual RMSE / median | P90 / P95 / max residual | 4x4 cells occupied |
+|---|---:|---:|---:|---:|---:|---:|
+| T43QBB (2022-12-23 → 2023-05-12) | 89.2592% | 386 / 299 | 77.5% | 10.30 / 1.44 m | 19.64 / 31.13 / 39.03 m | 9 / 16 |
+| T43RGM (2023-10-06 → 2026-10-22) | 99.9958% | 271 / 213 | 78.6% | 9.21 / 0.76 m | 1.06 / 31.47 / 38.67 m | 9 / 16 |
+
+These are fitted tie-point residuals, not independent validation errors.
+RMSEs near 9–10 m, long upper residual tails, and matches in only 9 of 16
+coarse spatial cells mean the transforms are not yet established as suitable
+for building-scale change detection. The low medians alone do not demonstrate
+sub-pixel accuracy. Visual review of SCL masks and before/after imagery,
+residual-map inspection, and independent stable check points remain necessary.
+A 10 m displacement can create change-like edges around buildings and roads.
+The high SCL-valid fractions are mask-derived coverage only and do not
+guarantee freedom from haze or other residual atmospheric effects.
+
 ## Outputs and completion checks
 
 - `outputs/sen2cor/l2a/`: Sen2Cor L2A SAFE products.
@@ -79,9 +108,8 @@ correct local terrain/parallax distortions.
   registration metric CSV files.
 
 The script is idempotent for completed Sen2Cor products and prepared stacks.
-Review log files and metadata before continuing if an output is incomplete.
-After running the stages, inspect reflectance ranges and before/after panels,
-and review each registration residual map before accepting the outputs. The
-first processed product (2022-12-23, T43QBB) has 99.99% valid pixels according
-to the generated Sen2Cor SCL mask. This is only the first scene's mask-derived
-coverage, not a cloud-free guarantee or a complete pair assessment.
+All four Sen2Cor logs report successful termination, and each processed
+summary records the L2A gain and per-band offsets used. Before accepting
+registration for quantitative detection, inspect reflectance ranges, SCL
+masks, before/after panels, and each residual map, and evaluate independent
+stable check points.

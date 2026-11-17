@@ -546,6 +546,21 @@ def estimate_registration(
     errors = np.linalg.norm(residual_m, axis=1)
     rmse_m = float(np.sqrt(np.mean(errors**2)))
     median_error_m = float(np.median(errors))
+    p90_error_m, p95_error_m, max_error_m = (
+        float(value) for value in np.percentile(errors, (90, 95, 100))
+    )
+    inlier_target_points = target_points[inliers]
+    grid_columns = np.clip(
+        (inlier_target_points[:, 0] / reference_image.shape[1] * 4).astype(int),
+        0,
+        3,
+    )
+    grid_rows = np.clip(
+        (inlier_target_points[:, 1] / reference_image.shape[0] * 4).astype(int),
+        0,
+        3,
+    )
+    occupied_cells = len(set(zip(grid_columns.tolist(), grid_rows.tolist())))
 
     source_scale_x = moving.width / moving_image.shape[1]
     source_scale_y = moving.height / moving_image.shape[0]
@@ -568,6 +583,11 @@ def estimate_registration(
         "inlier_ratio": inlier_ratio,
         "rmse_m": rmse_m,
         "median_error_m": median_error_m,
+        "p90_error_m": p90_error_m,
+        "p95_error_m": p95_error_m,
+        "max_error_m": max_error_m,
+        "inlier_grid_cells_occupied": occupied_cells,
+        "inlier_grid_cells_total": 16,
         "shift_x_m": float(matrix[0, 2] * source_scale_x * pixel_width),
         "shift_y_m": float(matrix[1, 2] * source_scale_y * pixel_height),
     }

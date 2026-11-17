@@ -124,11 +124,13 @@ reproducible preprocessing sequence is:
 6. Intersect the two per-date validity masks and save the common-valid mask
    beside the registered image.
 
-The first processed scene (2022-12-23, T43QBB) has 99.99% SCL-valid pixels in
-the current preprocessing summary. This single-scene percentage is not a
-pairwise valid-area result and does not guarantee absence of haze or residual
-cloud contamination. Coverage summaries for the other three products and the
-common valid areas for each pair remain pending.
+All four supplied products completed Sen2Cor processing and stack preparation.
+Their SCL-derived valid areas are 99.9937% (12,055.286 km²) for T43QBB
+2022-12-23, 89.2650% (10,761.823 km²) for T43QBB 2023-05-12, 99.9968%
+(12,055.654 km²) for T43RGM 2023-10-06, and 99.9990% (12,055.923 km²) for
+T43RGM 2026-10-22. The common-valid fractions are 89.2592% for the T43QBB
+pair and 99.9958% for the T43RGM pair. These are SCL-mask coverage values,
+not guarantees of cloud- or haze-free observations.
 
 Run the implemented stages from the repository root:
 
@@ -151,10 +153,22 @@ observation, but the XML statement is an absolute-location check against a
 30 m acceptance threshold, not pairwise relative registration accuracy.
 Neither establishes that a pair is aligned well enough for change detection.
 The workflow estimates relative alignment separately for each same-tile pair.
-Registration residuals must be inspected; if stable matches do not support
-suitable accuracy, affected regions must be excluded or marked uncertain.
-No pairwise registration result is claimed until Sen2Cor outputs have been
-processed and checked.
+Measured registration results are:
+
+| Pair (earlier → later) | Matches / inliers | Inlier ratio | RMSE / median residual | P90 / P95 / max residual | 4x4 inlier cells occupied |
+|---|---:|---:|---:|---:|---:|
+| T43QBB (2022-12-23 → 2023-05-12) | 386 / 299 | 77.5% | 10.30 / 1.44 m | 19.64 / 31.13 / 39.03 m | 9 / 16 |
+| T43RGM (2023-10-06 → 2026-10-22) | 271 / 213 | 78.6% | 9.21 / 0.76 m | 1.06 / 31.47 / 38.67 m | 9 / 16 |
+
+These residuals are calculated on the fitted tie points; no independent
+check-point errors have been measured. RMSE near 9–10 m, large upper-tail
+residuals, and incomplete 4x4 spatial coverage do not establish suitability
+for building-scale analysis. The low median residuals are not sufficient
+evidence of sub-pixel accuracy. Visual review of the SCL masks and aligned
+before/after imagery, residual-map inspection, and independent stable check
+points remain outstanding. A 10 m displacement can produce change-like edges
+around buildings and roads; unsupported regions must be excluded or marked
+uncertain.
 
 The implementation must be windowed: one full-tile 10 m float32 band is about
 1.93 GB decimal, exceeding available free RAM on the inspected development
@@ -258,7 +272,7 @@ or this report is not a substitute.
 | Assignment area | Status |
 |---|---|
 | Data audit and execution requirements | Metadata/file audit completed; cloud/usable-pixel and full decode checks remain |
-| Preprocessing and registration | Sen2Cor subprocess, metadata-driven L2A reflectance scaling, cloud/invalid masking, and feature-registration workflow implemented; one product processed and summarized; remaining Sen2Cor runs, pair preparation, and pairwise measurements pending |
+| Preprocessing and registration | All four products processed with Sen2Cor; metadata-driven six-band L2A stacks and SCL masks prepared; two same-tile pairs registered and coverage/residual metrics recorded; visual mask/alignment review and independent check-point validation remain |
 | Ground/onboard architecture | Candidates documented; neither implemented nor benchmarked |
 | Training and tuning | No labels or training runs |
 | Change analysis and validation | No detections or validation results |
