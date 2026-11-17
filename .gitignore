@@ -17,6 +17,12 @@
 !/outputs/models/.gitkeep
 /outputs/reports/*
 !/outputs/reports/.gitkeep
+/outputs/processed/*
+!/outputs/processed/.gitkeep
+/outputs/registered/*
+!/outputs/registered/.gitkeep
+/outputs/sen2cor/*
+!/outputs/sen2cor/.gitkeep
 
 # Model checkpoints and weights.
 *.ckpt

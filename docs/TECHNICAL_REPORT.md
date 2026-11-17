@@ -85,10 +85,10 @@ B08)/(B11 + B08). Nodata and near-zero denominators must be masked.
 
 L1C data are top-of-atmosphere reflectance, not surface reflectance. The
 products report quantification value 10,000 and per-band `RADIO_ADD_OFFSET`
--1,000. Convert digital numbers using the offsets and quantification values
-from each product's metadata, and validate the metadata convention before
-processing. Clouds, haze, cirrus, shadows, radiometric consistency, full JP2
-decoding, and per-pixel usable-area percentages remain to be assessed.
+-1,000. These values are retained as source metadata and are used internally by
+Sen2Cor during L1C processing. The analysis stack is built from the L2A output
+and uses its own `BOA_ADD_OFFSET` and `BOA_QUANTIFICATION_VALUE`; L1C offsets
+must not be applied a second time to L2A pixels.
 
 No reference labels were supplied. OSM features may provide dated contextual
 evidence but are not ground truth without checking temporal coverage,
@@ -99,28 +99,54 @@ material; land-cover data may aid context but cannot substitute for labels.
 
 ## 3. Preprocessing and registration
 
-The intended reproducible preprocessing sequence is:
+The Phase 2 workflow is implemented in
+[`../src/preprocessing/phase2.py`](../src/preprocessing/phase2.py). The
+reproducible preprocessing sequence is:
 
 1. Read product metadata, band grids, quality reports, masks, and nodata.
-2. Convert DN to reflectance using product-specific metadata.
-3. Assess cloud, cirrus, defective pixels, shadows, and missing/invalid data;
-   create an explicit per-pixel validity mask and report usable coverage.
-4. Compare L1C radiometry between dates. Select and document an atmospheric
-   correction or relative-normalization method only after inspection; no such
-   method has yet been selected or evaluated.
-5. Reproject/resample each pair onto a shared 10 m grid, using continuous or
-   categorical interpolation as appropriate.
-6. Estimate and apply geometric registration using stable features, then
-   measure residual tie-point RMSE and inspect local errors.
-7. Crop to the shared valid footprint and save analysis-ready georeferenced
-   data with provenance.
+2. Run Sen2Cor 2.13.02 on each L1C SAFE product using the supplied batch file.
+   The wrapper invokes it with `subprocess`, redirects per-product logs, and
+   uses Windows short paths because the batch file contains unquoted paths
+   that otherwise break when the Windows user profile contains spaces.
+3. Convert L2A DN to reflectance using
+   `(DN + BOA_ADD_OFFSET) / BOA_QUANTIFICATION_VALUE` from that L2A product's
+   metadata. The implementation fails if the gain or any selected band's
+   offset is missing; it does not silently assume a scale.
+4. Resample selected continuous bands onto the product's B02 10 m grid and use
+   the Sen2Cor scene classification layer for invalid pixels. Nodata,
+   defective, cloud-shadow, unclassified, cloud, cirrus, and snow classes are
+   excluded. A per-product valid-pixel mask is preserved.
+5. Estimate a robust affine transform from ORB tie points per same-tile pair,
+   warp the later image to the earlier image's grid, and record tie-point
+   residuals, transform, and RMSE in CSV.
+6. Intersect the two per-date validity masks and save the common-valid mask
+   beside the registered image.
+
+Run the implemented stages from the repository root:
+
+```powershell
+.\venv\Scripts\python.exe src\preprocessing\phase2.py sen2cor
+.\venv\Scripts\python.exe src\preprocessing\phase2.py prepare
+.\venv\Scripts\python.exe src\preprocessing\phase2.py register
+```
+
+By default, Sen2Cor products and logs go under `outputs/sen2cor/`, reflectance
+stacks under `outputs/processed/`, and registration outputs under
+`outputs/registered/`. Large derived rasters are ignored by Git.
 
 Although products from a single MGRS tile usually have compatible map
 coordinates, this does not prove pixel-level alignment. Residual shifts can
 create bright/dark edges around buildings and roads that mimic change. The
-planned registration target is below 0.5 of a 10 m pixel RMSE, subject to
-verification that the stable tie points and residual distribution support
-that threshold. No registration accuracy has been measured yet.
+supplied geometric-quality XML states `Absolute location is valid
+(20.0<30.0)`. This is consistent with the user's approximately 20 m QGIS
+observation, but the XML statement is an absolute-location check against a
+30 m acceptance threshold, not pairwise relative registration accuracy.
+Neither establishes that a pair is aligned well enough for change detection.
+The workflow estimates relative alignment separately for each same-tile pair.
+Registration residuals must be inspected; if stable matches do not support
+suitable accuracy, affected regions must be excluded or marked uncertain.
+No pairwise registration result is claimed until Sen2Cor outputs have been
+processed and checked.
 
 The implementation must be windowed: one full-tile 10 m float32 band is about
 1.93 GB decimal, exceeding available free RAM on the inspected development
@@ -224,7 +250,7 @@ or this report is not a substitute.
 | Assignment area | Status |
 |---|---|
 | Data audit and execution requirements | Metadata/file audit completed; cloud/usable-pixel and full decode checks remain |
-| Preprocessing and registration | Not implemented; methods and checks defined above |
+| Preprocessing and registration | Sen2Cor subprocess, metadata-driven L2A reflectance scaling, cloud/invalid masking, and feature-registration workflow implemented; product processing and pairwise measurements pending |
 | Ground/onboard architecture | Candidates documented; neither implemented nor benchmarked |
 | Training and tuning | No labels or training runs |
 | Change analysis and validation | No detections or validation results |

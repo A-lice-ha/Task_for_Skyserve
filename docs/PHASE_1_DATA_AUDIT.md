@@ -32,6 +32,13 @@ present in each product. The supplied format, general, geometric, sensor, and
 This is a metadata/file-presence check, not a full decode or pixel-quality
 validation.
 
+Each geometric quality report contains the statement
+`Absolute location is valid (20.0<30.0)`. This records a 20 m absolute-location
+value as passing a 30 m threshold; it is not pairwise relative registration
+accuracy. The user's approximately 20 m observation in QGIS is consistent
+with the metadata, but local tie-point residuals still need to be measured for
+each temporal pair.
+
 All products report a quantification value of 10,000 and a
 `RADIO_ADD_OFFSET` of -1,000 for each spectral band. Apply the per-band
 metadata when converting DN to reflectance; do not assume offsets or
