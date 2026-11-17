@@ -155,10 +155,8 @@ def run_sen2cor(
     if resolution not in (10, 20, 60):
         raise ValueError("Sen2Cor resolution must be 10, 20, or 60")
 
-    output_dir = (output_root / "l2a" / product.name).resolve()
-    work_dir = (output_root / "work" / product.name).resolve()
+    output_dir = (output_root / "l2a" / product.stem).resolve()
     output_dir.mkdir(parents=True, exist_ok=True)
-    work_dir.mkdir(parents=True, exist_ok=True)
     existing = _find_l2a_products(output_dir)
     if existing:
         print(f"Sen2Cor output already exists; skipping: {existing[0]}")
@@ -169,11 +167,7 @@ def run_sen2cor(
     short_bat = _short_windows_path(sen2cor_bat)
     short_product = _short_windows_path(product, preserve_name=True)
     short_output = _short_windows_path(output_dir, preserve_name=True)
-    short_work = _short_windows_path(work_dir, preserve_name=True)
-    command = (
-        f"call {short_bat} {short_product} --output_dir {short_output} "
-        f"--work_dir {short_work} --resolution {resolution}"
-    )
+    command = f"call {short_bat} {short_product} --output_dir {short_output} --resolution {resolution}"
     environment = os.environ.copy()
     environment["USERPROFILE"] = short_userprofile
     environment.pop("PYTHONHOME", None)
@@ -185,7 +179,7 @@ def run_sen2cor(
     with log_path.open("w", encoding="utf-8", errors="replace") as log_file:
         result = subprocess.run(
             [os.environ.get("COMSPEC", "cmd.exe"), "/d", "/c", command],
-            cwd=short_work,
+            cwd=short_output,
             env=environment,
             stdout=log_file,
             stderr=subprocess.STDOUT,
