@@ -78,10 +78,10 @@ Cross-tile comparison (T43QBB vs T43RGM) is generally **not valid** for pixel-le
 ### Tasks
 
 #### 1.1 Metadata Extraction
-- [ ] Parse `MTD_MSIL1C.xml` from all 4 products: extract sensing time, orbit, tile, processing baseline, cloud cover %, sun angles
-- [ ] Parse `MTD_TL.xml` (tile-level): extract tile footprint polygon (WGS-84), spatial reference, radiometric offsets
-- [ ] Parse `QI_DATA/` XML: extract quality flags (format correctness, geometric quality, radiometric quality, sensor quality)
-- [ ] Tabulate results in a comparison matrix
+- [x] Parse `MTD_MSIL1C.xml` from all 4 products: extract sensing time, orbit, tile, processing baseline, cloud cover %, sun angles
+- [x] Parse `MTD_TL.xml` (tile-level): extract tile footprint polygon (WGS-84), spatial reference, radiometric offsets
+- [x] Parse `QI_DATA/` XML: extract quality flags (format correctness, geometric quality, radiometric quality, sensor quality)
+- [x] Tabulate results in a comparison matrix in `docs/PHASE_1_DATA_AUDIT.md`
 
 #### 1.2 Band Selection Justification
 | Purpose | Bands | Resolution | Justification |
@@ -90,21 +90,21 @@ Cross-tile comparison (T43QBB vs T43RGM) is generally **not valid** for pixel-le
 | Vegetation masking | B04, B08 (NDVI); B05, B06, B07, B8A (red-edge) | 10–20m | Separate seasonal vegetation from structural change |
 | Water masking | B03, B08 (NDWI); B03, B11 (MNDWI) | 10–20m | Exclude water-level fluctuations |
 | Cloud/shadow masking | B01, B02, B10 + QI masks | 60m/10m | Filter unreliable pixels |
-| Bare soil / urban | B11, B12, B04 (NDBI) | 20m | Discriminate construction from bare soil |
+| Bare soil / urban | B11, B08 (NDBI); B12 as an additional SWIR feature | 10–20m | NDBI is (B11 − B08) / (B11 + B08); use other features to help separate construction from bare soil |
 
 **Working resolution:** Resample all bands to **10m** using bilinear (continuous) or nearest-neighbor (masks) interpolation. Justify in report.
 
 #### 1.3 Identify Data Gaps
-- [ ] Cloud/shadow coverage per tile — can we get usable coverage?
+- [ ] Cloud/shadow coverage per tile — metadata cloud assessment is recorded; per-pixel usable coverage remains for preprocessing
 - [ ] Atmospheric quality (haze, cirrus from B10)
-- [ ] Missing or corrupt bands
-- [ ] Seasonal context: Dec (winter/dry) vs May (spring/green) for Pair A; Oct vs Oct for Pair B
-- [ ] **Additional data needs:** OSM building footprints (for reference labels), DEM for terrain correction (SRTM/Copernicus DEM), land-use maps for class priors
+- [x] Check expected band file presence and supplied quality reports; full JP2 decode/integrity validation remains
+- [x] Seasonal context: Dec (winter/dry) vs May (spring/green) for Pair A; Oct vs Oct for Pair B
+- [x] Identify additional data needs: OSM building footprints, date-appropriate reference imagery/records, optional DEM, and land-cover context
 
 #### 1.4 Computational Resources
-- Document available GPU/CPU, RAM, storage
-- Estimate processing time per phase
-- Define onboard vs ground hardware assumptions (see Phase 3)
+- [x] Document available GPU/CPU, RAM, storage
+- [ ] Estimate processing time per phase after representative processing/model benchmarks
+- [x] Record preliminary onboard vs ground hardware assumptions; confirm target hardware in Phase 3
 
 ---
 
@@ -479,4 +479,3 @@ flowchart LR
 
 > [!TIP]
 > **Highest-leverage actions first:** Get preprocessing and co-registration right before any modeling work. A poor registration will invalidate everything downstream. Start Phase 2 as early as possible and validate with visual checks.
-
