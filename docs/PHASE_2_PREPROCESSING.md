@@ -69,6 +69,16 @@ local distortions remain too large for building-scale inference, those areas
 must be excluded or marked uncertain; a single global affine fit does not
 correct local terrain/parallax distortions.
 
+The user subsequently spot-checked several locations in each image against
+Google Hybrid and reports an approximately 9–12 m displacement for every
+image. Treat this as a visual absolute-geolocation comparison, not survey-grade
+ground control: Google basemap imagery can itself have positional error, and
+the inspected points, measurement method, and uncertainty have not been
+recorded. A similar offset in each date does not imply the same relative
+offset between dates. The ORB/RANSAC tie-point metrics below measure fitted
+pairwise residuals instead, and independent stable control points are still
+needed to validate pair alignment.
+
 ## Measured preprocessing and registration results
 
 The four supplied products were processed through Sen2Cor, prepared as
@@ -111,15 +121,18 @@ reported separately and is not assumed to be cloud shadow.
 | T43RGM, 2023-10-06 | 0.0001% | 0.0000% | 1.4084% | 0.0028% |
 | T43RGM, 2026-10-22 | 0.0000% | 0.0000% | 1.2742% | 0.0009% |
 
-This SCL result conflicts with the user's visual spot-check of the
-2026-10-22 T43RGM RGB rendering, which shows a broad diffuse bright veil
-consistent with haze or smoke-like contamination. The screenshot alone cannot
-distinguish smoke from haze, thin cloud, or display/stretch effects. Importantly,
-the almost-100% valid-mask fraction for this scene is not evidence that the
-image is atmospherically clean: SCL missed the visually apparent veil in this
-spot-check. Do not treat all mask-valid pixels as reliable for change
-interpretation; review the AOI and mask cloudy/hazy regions conservatively.
-No unvalidated AOT threshold is applied automatically.
+This SCL result conflicts with the user's visual spot-checks: the
+2026-10-22 T43RGM RGB rendering shows a broad diffuse bright veil, and the user
+also reports visible haze over Delhi. The haze observation over Delhi has not
+been attributed to a specific acquisition date or product, so it cannot yet
+be compared scene-by-scene against the SCL/AOT statistics. The image
+observations are consistent with haze or smoke-like contamination, but do not
+distinguish smoke from haze, thin cloud, or display/stretch effects.
+Importantly, the almost-100% valid-mask fraction for the 2026-10-22 scene is
+not evidence that the image is atmospherically clean: SCL missed the
+visually apparent veil in that spot-check. Do not treat all mask-valid pixels
+as reliable for change interpretation; review the AOI and mask cloudy/hazy
+regions conservatively. No unvalidated AOT threshold is applied automatically.
 
 Sen2Cor's AOT and water-vapour rasters provide additional estimated
 atmospheric indicators. AOT was scaled by the metadata quantification value

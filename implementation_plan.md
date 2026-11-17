@@ -183,10 +183,10 @@ Cross-tile comparison (T43QBB vs T43RGM) is generally **not valid** for pixel-le
 | Expected latency | < 1s/tile (GPU) | < 5s/tile (edge) |
 
 ### 3.2 Implementation
-- [ ] Implement Siamese U-Net in PyTorch using `segmentation-models-pytorch` or custom
-- [ ] Implement MobileNet variant
-- [ ] Verify forward pass with dummy input; profile FLOPs and memory
-- [ ] Document architectural tradeoffs in decision log
+- [x] Implement custom shared-weight Siamese U-Net in PyTorch for six-band, seven-class ground inference
+- [x] Implement half-width MobileNetV3-Small Siamese variant for four-band binary onboard proposals
+- [x] Verify forward pass with dummy input; profile parameters, FLOPs, CPU latency, and sampled memory on 256×256 patches
+- [x] Document architectural tradeoffs and profiling caveats in `docs/PHASE_3_ARCHITECTURE.md`
 
 ---
 

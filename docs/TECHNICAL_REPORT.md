@@ -147,6 +147,16 @@ This confirms SCL's limitations for the observed scene: its nearly 100% valid
 mask does not establish atmospheric clarity, and suspect areas should not be
 used without visual review and conservative exclusion.
 
+The user also reports visible haze over Delhi. The date/product for that
+observation has not been specified, so it cannot yet be associated with an
+individual scene's SCL or AOT statistics. Separately, visual checks against
+Google Hybrid at several points in each image reportedly show 9–12 m
+displacement. This is an approximate absolute-geolocation comparison against
+a basemap, not survey-grade control or a pairwise registration measurement;
+the basemap and selected points also have positional uncertainty. Similar
+absolute offsets across dates do not demonstrate that relative alignment is
+accurate. Independent stable control points are still required.
+
 Metadata-scaled Sen2Cor AOT (10 m) has median/P98 values of 0.372/0.401 for
 the earlier T43RGM scene and 0.419/0.443 for the later scene. The later
 scene's median is about 12.6% higher. This is consistent with investigating
@@ -206,20 +216,26 @@ machine. Full-tile multi-band arrays are not a safe processing strategy here.
 
 ## 4. Model and deployment design
 
-The current ground-model candidate is a Siamese U-Net: two shared-weight
-encoders process the registered observations, and a decoder predicts a
-per-pixel change class. A ResNet-34 or EfficientNet-B2 encoder and a
-multi-class output are candidates, not implemented or selected models. The
-final class schema will include no-change, the structural target classes, and
-uncertain.
+Two CPU-capable PyTorch architectures are implemented in
+[`../src/models/siamese.py`](../src/models/siamese.py): a shared-weight,
+six-band Siamese U-Net returning seven per-pixel semantic logits, and a
+four-band, half-width MobileNetV3-Small Siamese network returning binary
+change/no-change logits. The ground model uses a custom encoder rather than
+ResNet/EfficientNet because the inputs are multispectral and no suitable
+pretrained weights are supplied; the onboard model's first layer is adapted
+to four channels and initialized without ImageNet weights. Architectural
+tradeoffs and the class/band order are recorded in
+[`PHASE_3_ARCHITECTURE.md`](./PHASE_3_ARCHITECTURE.md).
 
-The onboard candidate is a smaller Siamese encoder using MobileNetV3-Small,
-initially producing binary change/no-change proposals for later ground
-classification. Proposed constraints in the implementation plan
-(&lt;5M parameters, &lt;500 MB peak memory, &lt;5 s per 256×256 tile and a
-2 W power budget) are design targets only. No onboard device or power
-measurement is available; CPU/ONNX proxy measurements must be labeled as
-proxy results and cannot establish target-device power or latency.
+On the inspected CPU-only development machine, batch-1 256×256 synthetic
+patch profiling with four CPU threads measured 4,696,743 parameters,
+40.35 GFLOPs, 0.246 s first-forward latency, and 455.3 MiB sampled process RSS
+for the ground model; the onboard model measured 279,274 parameters,
+0.118 GFLOPs, 0.025 s, and 241.3 MiB sampled process RSS. These are proxy
+measurements, not target-device benchmarks or sustained throughput; the
+onboard <5M parameter limit is met, but its power, memory behavior, and
+latency remain unverified on an actual edge device. Neither model has been
+trained, calibrated, or evaluated for accuracy.
 
 Observed development system: Windows 11; AMD Ryzen 5 7530U, 6 cores / 12
 logical processors; 15.3 GiB RAM (about 4.6 GiB free when inspected); AMD
@@ -303,7 +319,7 @@ or this report is not a substitute.
 |---|---|
 | Data audit and execution requirements | Metadata/file audit completed; cloud/usable-pixel and full decode checks remain |
 | Preprocessing and registration | All four products processed with Sen2Cor; metadata-driven six-band L2A stacks and SCL masks prepared; two same-tile pairs registered and coverage/residual metrics recorded; visual mask/alignment review and independent check-point validation remain |
-| Ground/onboard architecture | Candidates documented; neither implemented nor benchmarked |
+| Ground/onboard architecture | Both PyTorch models implemented and synthetic-forward tested; CPU patch profiling recorded; no training or target-device validation |
 | Training and tuning | No labels or training runs |
 | Change analysis and validation | No detections or validation results |
 | Quantization | No model or measurements |
