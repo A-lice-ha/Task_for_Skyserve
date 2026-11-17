@@ -2,15 +2,21 @@
 *.SAFE/
 *.SAFE.zip
 
-# Local and processed geospatial data.
-/data/raw/
-/data/processed/
+# Local and processed geospatial data; keep directory placeholders trackable.
+/data/raw/*
+!/data/raw/.gitkeep
+/data/processed/*
+!/data/processed/.gitkeep
 
 # Generated maps, evidence, reports, and model artifacts.
-/outputs/maps/
-/outputs/evidence/
-/outputs/models/
-/outputs/reports/
+/outputs/maps/*
+!/outputs/maps/.gitkeep
+/outputs/evidence/*
+!/outputs/evidence/.gitkeep
+/outputs/models/*
+!/outputs/models/.gitkeep
+/outputs/reports/*
+!/outputs/reports/.gitkeep
 
 # Model checkpoints and weights.
 *.ckpt
