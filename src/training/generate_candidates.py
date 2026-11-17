@@ -9,6 +9,7 @@ from collections import defaultdict
 from datetime import date
 from pathlib import Path
 
+import cv2
 import numpy as np
 import rasterio
 from rasterio.windows import Window, transform as window_transform
@@ -24,6 +25,8 @@ MIN_VALID_FRACTION = 0.8
 HIGH_SIGNAL_FRACTION = 0.1
 RANDOM_BACKGROUND_FRACTION = 0.18
 RANDOM_SEED = 20261117
+OPEN_WATER_BUFFER_M = 500
+MIN_REVIEW_AREA_FRACTION = 0.05
 NODATA = -9999.0
 MIN_INDEX_DENOMINATOR = 1e-6
 SCORE_THRESHOLDS = {
@@ -168,6 +171,7 @@ def _patch_stats(
     col: int,
     transform,
     spatial_block_id: str,
+    review_area: np.ndarray | None = None,
 ) -> dict | None:
     if valid.mean() < MIN_VALID_FRACTION:
         return None
@@ -177,44 +181,204 @@ def _patch_stats(
     if valid.mean() < MIN_VALID_FRACTION:
         return None
 
+    review_valid = valid if review_area is None else valid & review_area
+    review_area_fraction = float(review_valid.mean())
+    if review_area_fraction < MIN_REVIEW_AREA_FRACTION:
+        return None
+
     before_indices = _indices(before)
     after_indices = _indices(after)
     deltas = {
         name: after_indices[name] - before_indices[name]
         for name in SCORE_THRESHOLDS
     }
-    valid &= np.logical_and.reduce(
+    review_valid &= np.logical_and.reduce(
         [np.isfinite(delta) for delta in deltas.values()]
     )
-    if valid.mean() < MIN_VALID_FRACTION:
+    if review_valid.mean() < MIN_REVIEW_AREA_FRACTION:
         return None
 
     percentiles = {
-        name: np.percentile(delta[valid], (10, 50, 90))
+        name: np.percentile(delta[review_valid], (10, 50, 90))
         for name, delta in deltas.items()
     }
     # Scores are recomputed after pair-wide medians are known.
     water_transition = (
-        (deltas["mndwi"] < -0.3) & (deltas["ndbi"] > 0.1) & valid
+        (deltas["mndwi"] < -0.3)
+        & (deltas["ndbi"] > 0.1)
+        & review_valid
     )
     return {
         "row": row,
         "col": col,
         "transform": transform,
         "valid_fraction": float(valid.mean()),
+        "review_area_fraction": review_area_fraction,
         "percentiles": {
             name: tuple(float(value) for value in values)
             for name, values in percentiles.items()
         },
-        "water_transition_fraction": float(water_transition.sum() / valid.sum()),
+        "water_transition_fraction": float(
+            water_transition.sum() / review_valid.sum()
+        ),
         "spatial_block_id": spatial_block_id,
     }
+
+
+def _stable_water_review_area(
+    stable_water: np.ndarray,
+    water_transition: np.ndarray,
+    buffer_pixels: int,
+) -> np.ndarray:
+    """Exclude persistent-water interiors while retaining shore/transition zones."""
+    stable_water = stable_water.astype(bool, copy=False)
+    distance_to_nonwater = cv2.distanceTransform(
+        stable_water.astype(np.uint8), cv2.DIST_L2, 5
+    )
+    near_shore = distance_to_nonwater <= buffer_pixels
+    return ~stable_water | near_shore | water_transition.astype(bool, copy=False)
+
+
+def _persistent_water_pixels(
+    before_mndwi: np.ndarray,
+    after_mndwi: np.ndarray,
+    before_ndvi: np.ndarray,
+    after_ndvi: np.ndarray,
+    common_valid: np.ndarray,
+) -> np.ndarray:
+    finite = np.logical_and.reduce(
+        [
+            np.isfinite(index)
+            for index in (before_mndwi, after_mndwi, before_ndvi, after_ndvi)
+        ]
+    )
+    return (
+        common_valid
+        & finite
+        & (before_mndwi > 0.0)
+        & (after_mndwi > 0.0)
+        & (before_ndvi < 0.2)
+        & (after_ndvi < 0.2)
+    )
+
+
+def _mumbai_review_area_mask(
+    before_path: Path, after_path: Path, valid_path: Path
+) -> np.ndarray:
+    """Build a review-only sea screen; the source common-valid mask is unchanged."""
+    with rasterio.open(before_path) as before, rasterio.open(after_path) as after, rasterio.open(
+        valid_path
+    ) as valid:
+        _validate_datasets(before, after, valid, "Mumbai")
+        stable_water = np.zeros((before.height, before.width), dtype=np.uint8)
+        water_transition = np.zeros_like(stable_water, dtype=bool)
+        for row in range(0, before.height, 512):
+            for col in range(0, before.width, 512):
+                window = Window(
+                    col,
+                    row,
+                    min(512, before.width - col),
+                    min(512, before.height - row),
+                )
+                before_bands = before.read((2, 3, 4, 5), window=window).astype(
+                    np.float32, copy=False
+                )
+                after_bands = after.read((2, 3, 4, 5), window=window).astype(
+                    np.float32, copy=False
+                )
+                common_valid = valid.read(1, window=window) > 0
+                before_mndwi = _index(
+                    before_bands[0] - before_bands[3],
+                    before_bands[0] + before_bands[3],
+                )
+                after_mndwi = _index(
+                    after_bands[0] - after_bands[3],
+                    after_bands[0] + after_bands[3],
+                )
+                before_ndvi = _index(
+                    before_bands[2] - before_bands[1],
+                    before_bands[2] + before_bands[1],
+                )
+                after_ndvi = _index(
+                    after_bands[2] - after_bands[1],
+                    after_bands[2] + after_bands[1],
+                )
+                before_ndbi = _index(
+                    before_bands[3] - before_bands[2],
+                    before_bands[3] + before_bands[2],
+                )
+                after_ndbi = _index(
+                    after_bands[3] - after_bands[2],
+                    after_bands[3] + after_bands[2],
+                )
+                stable = _persistent_water_pixels(
+                    before_mndwi,
+                    after_mndwi,
+                    before_ndvi,
+                    after_ndvi,
+                    common_valid,
+                )
+                transition = (
+                    common_valid
+                    & np.isfinite(before_mndwi)
+                    & np.isfinite(after_mndwi)
+                    & np.isfinite(before_ndbi)
+                    & np.isfinite(after_ndbi)
+                    & ((after_mndwi - before_mndwi) < -0.3)
+                    & ((after_ndbi - before_ndbi) > 0.1)
+                )
+                height, width = stable.shape
+                stable_water[
+                    row : row + height, col : col + width
+                ] = stable.astype(np.uint8)
+                water_transition[
+                    row : row + height, col : col + width
+                ] = transition
+    review_area = _stable_water_review_area(
+        stable_water,
+        water_transition,
+        buffer_pixels=OPEN_WATER_BUFFER_M // 10,
+    )
+    review_mask_path = ROOT / "outputs" / "processed" / "mumbai_candidate_review_area.tif"
+    review_mask_path.parent.mkdir(parents=True, exist_ok=True)
+    with rasterio.open(before_path) as reference:
+        profile = reference.profile.copy()
+    profile.update(
+        driver="GTiff",
+        count=1,
+        dtype="uint8",
+        nodata=255,
+        compress="deflate",
+        predictor=2,
+        tiled=True,
+        blockxsize=512,
+        blockysize=512,
+    )
+    with rasterio.open(review_mask_path, "w", **profile) as output:
+        output.write(review_area.astype(np.uint8), 1)
+        output.update_tags(
+            description=(
+                "Candidate-review area: 1=retain for review, 0=persistent "
+                "offshore water screened; not a validity mask or land classification"
+            ),
+            water_rule=(
+                "MNDWI>0 and NDVI<0.2 in both dates; exclude persistent-water "
+                "interiors >500m from non-water, preserving water-to-impervious "
+                "transition pixels"
+            ),
+        )
+    return review_area
 
 
 def _collect_patch_stats(
     scene: dict, before_path: Path, after_path: Path, mask_path: Path
 ) -> tuple[list[dict], rasterio.crs.CRS]:
     patches = []
+    review_area = (
+        _mumbai_review_area_mask(before_path, after_path, mask_path)
+        if scene["city"].lower() == "mumbai"
+        else None
+    )
     with rasterio.open(before_path) as before, rasterio.open(after_path) as after, rasterio.open(
         mask_path
     ) as valid:
@@ -285,6 +449,14 @@ def _collect_patch_stats(
                         row = row_start + local_row
                         col = col_start + local_col
                         window = Window(col, row, PATCH_SIZE, PATCH_SIZE)
+                        patch_review_area = (
+                            review_area[
+                                row : row + PATCH_SIZE,
+                                col : col + PATCH_SIZE,
+                            ]
+                            if review_area is not None
+                            else None
+                        )
                         stats = _patch_stats(
                             patch_before,
                             patch_after,
@@ -293,6 +465,7 @@ def _collect_patch_stats(
                             col,
                             window_transform(window, before.transform),
                             block_id,
+                            patch_review_area,
                         )
                         if stats is not None:
                             patches.append(stats)
@@ -446,6 +619,7 @@ def _feature(
             "annotator": None,
             "notes": "",
             "valid_fraction": round(patch["valid_fraction"], 4),
+            "review_area_fraction": round(patch["review_area_fraction"], 4),
             "index_signal_score": round(patch["index_signal_score"], 4),
             "delta_ndvi_p10": round(d["ndvi"][0], 4),
             "delta_ndvi_p50": round(d["ndvi"][1], 4),
@@ -507,9 +681,20 @@ def generate_scene(scene: dict, output_dir: Path, overwrite: bool = False) -> in
                 "not applicable to deterministic high-signal candidates"
             ),
             "score_thresholds": SCORE_THRESHOLDS,
+            "review_area_filter": (
+                "For Mumbai only, persistent water is inferred where MNDWI > 0 "
+                "and NDVI < 0.2 in both dates. Persistent-water interiors more "
+                f"than {OPEN_WATER_BUFFER_M} m from non-water are excluded from "
+                "candidate scoring; coastal buffers and water-to-impervious "
+                "transition pixels are retained. This is a review-area heuristic, "
+                "not a land/water classification or a change label."
+                if scene["city"].lower() == "mumbai"
+                else "No water-area exclusion is applied."
+            ),
             "water_rule_reported_only": (
                 "delta_mndwi < -0.3 and delta_ndbi > 0.1; this is recorded as "
-                "evidence only and does not assign a change class"
+                "evidence only and does not assign a change class; for Mumbai "
+                "it also preserves those transition pixels in candidate review"
             ),
             "planned_split_buffer_m": 2000,
             "split_assignments": "unassigned; no split has been applied",
@@ -551,12 +736,25 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT_DIR)
     parser.add_argument(
+        "--city",
+        action="append",
+        choices=("mumbai", "delhi"),
+        help="Generate only this city; may be supplied more than once",
+    )
+    parser.add_argument(
         "--overwrite",
         action="store_true",
         help="Replace the generated candidate files; reviewed labels are never modified",
     )
     args = parser.parse_args()
-    for scene in SCENES:
+    selected_scenes = (
+        SCENES
+        if args.city is None
+        else tuple(
+            scene for scene in SCENES if scene["city"].lower() in args.city
+        )
+    )
+    for scene in selected_scenes:
         generate_scene(scene, args.output_dir.resolve(), overwrite=args.overwrite)
 
 

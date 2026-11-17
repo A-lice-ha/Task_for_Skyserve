@@ -45,8 +45,14 @@ def test_registration_recovers_translation_from_stable_features(tmp_path):
         moving_path
     ) as moving:
         transform, metrics = estimate_registration(reference, moving)
+        repeated_transform, repeated_metrics = estimate_registration(
+            reference, moving
+        )
 
     assert metrics["inliers"] >= 20
     assert abs(transform.c + 3) < 0.5
     assert abs(transform.f - 2) < 0.5
     assert metrics["rmse_m"] < 8
+    assert metrics["ransac_threshold_m"] == 15.0
+    assert tuple(transform) == tuple(repeated_transform)
+    assert metrics == repeated_metrics

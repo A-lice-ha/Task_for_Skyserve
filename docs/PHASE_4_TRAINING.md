@@ -130,10 +130,36 @@ and the pair common-valid mask. It computes
 `NDBI=(B11-B08)/(B11+B08)`, and
 `MNDWI=(B03-B11)/(B03+B11)`.
 
+The common-valid mask includes clear sea pixels; it is not a land mask. For
+Mumbai candidate scoring only, the generator excludes persistent-water
+interiors inferred from `MNDWI > 0` and `NDVI < 0.2` in both dates when they
+are more than 500 m from non-water. It retains a 500 m shoreline/creek buffer
+and pixels satisfying the water-to-impervious review rule, so coastal and
+bridge candidates are not intentionally discarded. The rule is a heuristic:
+inspect candidates and the full imagery, since tide, haze, or registration
+errors can affect these indices. The common-valid raster itself is unchanged,
+and this is not a substitute for clipping to a verified Mumbai MMR AOI.
+To regenerate only Mumbai without rewriting the Delhi file, use:
+
+```powershell
+.\venv\Scripts\python.exe src\training\generate_candidates.py --city mumbai --overwrite
+```
+
+The generator also writes
+`outputs/processed/mumbai_candidate_review_area.tif` on the same 10 m grid:
+value 1 means retained for candidate review, and 0 means screened as persistent
+offshore water. Load it as a separate review overlay in QGIS; it does not
+replace the common-valid mask, and its values are not training labels.
+
 The current run produced 135 Mumbai windows (108 index-ranked, 27 random
 below-threshold) and 171 Delhi windows (114 index-ranked, 57 random
 below-threshold). These span the full Sentinel tile footprints, not only
 municipal limits; select the relevant Delhi NCR/Mumbai MMR AOIs before review.
+These candidates were generated from the prior registered rasters in
+`outputs/registered/`, not the separate 15 m RANSAC comparison in
+`outputs/registered_15m/`. Compare both registrations in QGIS before tracing
+fine boundaries; do not treat the comparison as validated until stable control
+points have been checked.
 The files are unreviewed candidate artifacts. The generator's `--overwrite`
 option only replaces files whose features are still marked
 `unreviewed_candidate`; it refuses to replace a candidate file with reviewed
@@ -373,7 +399,11 @@ is unresolved and record a `confounder` such as `vegetation_agriculture`,
 `hydrology_tide`, `shadow_illumination`, `cloud`, `haze`, or
 `registration_artifact`. If a region is merely unreviewed, leave it unlabeled
 instead of assigning `uncertain` or `no_change`. `common_pct` is only a mask
-statistic; it does not flag residual haze.
+statistic; it does not flag residual haze. Use
+`outputs/processed/atmospheric_quality.csv` for scene-level SCL cloud/shadow
+coverage and Sen2Cor AOT/WVP summaries, then inspect the native SCL and AOT
+layers in QGIS. AOT is a processor estimate, not a validated haze threshold;
+do not automatically mask or relabel pixels from it.
 
 1. **Make QGIS responsive before digitizing.** The reflectance stacks are
    six-band, float32, roughly 2 GB each. Build raster overviews/pyramids once
@@ -385,9 +415,10 @@ statistic; it does not flag residual haze.
    for the overview files. Building overviews may take time once, but normal
    zoom/pan should then avoid reading full-resolution data for the whole tile.
 2. **Load only what you need.** Add one before raster, one registered after
-   raster, and the common-valid mask. Avoid loading all four full-tile stacks
-   simultaneously. Set the project CRS to the raster CRS (the current stacks
-   are EPSG:32643). In each six-band stack set QGIS multiband RGB to red B04
+   raster, the common-valid mask, and (for Mumbai candidate review) the
+   separate `mumbai_candidate_review_area.tif` overlay. Avoid loading all four
+   full-tile stacks simultaneously. Set the project CRS to the raster CRS
+   (the current stacks are EPSG:32643). In each six-band stack set QGIS multiband RGB to red B04
    (band 3), green B03 (band 2), blue B02 (band 1), then apply a reasonable
    cumulative-count stretch. Use layer visibility or the QGIS swipe tool to
    inspect the same map extent on the two dates. Confirm the valid mask is on

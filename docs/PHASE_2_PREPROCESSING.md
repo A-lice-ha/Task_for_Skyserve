@@ -8,6 +8,7 @@ environment with the pinned requirements installed:
 ```powershell
 .\venv\Scripts\python.exe src\preprocessing\phase2.py sen2cor
 .\venv\Scripts\python.exe src\preprocessing\phase2.py prepare
+.\venv\Scripts\python.exe src\preprocessing\phase2.py quality
 .\venv\Scripts\python.exe src\preprocessing\phase2.py register
 ```
 
@@ -38,6 +39,14 @@ not applied again to L2A values; the L2A output metadata is authoritative for
 the prepared surface-reflectance stack. Missing gain or offsets stop
 processing with an explicit error.
 
+The `quality` stage writes `outputs/processed/atmospheric_quality.csv`. It
+streams the native 20 m SCL classes and 10 m AOT/WVP rasters and reports per-
+class coverage, cloud/cirrus and shadow fractions, and metadata-scaled AOT/WVP
+median and 98th percentile. It does not impose an AOT cutoff or automatically
+mask haze: AOT is a Sen2Cor estimate, and a universal threshold is not
+validated for these scenes. Open the L2A SCL/AOT layers alongside the RGB
+stack in QGIS to review suspicious areas and annotate exclusions separately.
+
 Six reflectance bands (B02, B03, B04, B08, B11, B12) are read in 512-pixel
 windows and aligned to the B02 10 m grid. Continuous bands use bilinear
 resampling. The Sen2Cor scene classification layer is resampled using nearest
@@ -48,14 +57,20 @@ automatically treated as cloud shadow; this conservative distinction should
 be revisited with visual quality checks.
 
 The `register` stage groups the prepared products by tile and estimates an
-affine transform from ORB features on B04. It uses RANSAC and reports match
-count, inlier ratio, residual RMSE/median/percentiles in metres, 4x4 grid
-occupancy, estimated shift, and the pixel transform. The later observation is
-warped to the earlier observation's grid, and a common-valid mask is saved.
-The transform is only accepted after the tie-point count and inlier ratio
-checks pass. CSV values describe fitted tie-point residuals; inspect spatial
-distribution and independent check points before using the pair for
-quantitative detection.
+affine transform from ORB features on B04. It uses seeded RANSAC (seed 42) and
+reports match count, inlier ratio, residual RMSE/median/percentiles in metres,
+4x4 grid occupancy, estimated shift, and the pixel transform. The later
+observation is warped to the earlier observation's grid, and a common-valid
+mask is saved. RANSAC's reprojection limit is now 15 m in ground units,
+converted to preview pixels using the raster scale. CSV values describe fitted
+tie-point residuals; inspect spatial distribution and independent check points
+before using the pair for quantitative detection.
+
+The common-valid raster is only the intersection of the two dates' data/SCL
+validity masks. It is not a land mask: valid open water and sea pixels remain
+valid, and the reported pair coverage percentages use the full tile grid as
+their denominator. Apply a separate AOI or review-area filter when preparing
+land-focused labels; do not modify this source quality mask to hide water.
 
 ## Geometric accuracy
 
@@ -116,6 +131,23 @@ residual-map inspection, and independent stable check points remain necessary.
 A 10 m displacement can create change-like edges around buildings and roads.
 The high SCL-valid fractions are mask-derived coverage only and do not
 guarantee freedom from haze or other residual atmospheric effects.
+
+A separate comparison run using the new 15 m ground-distance RANSAC limit and
+fixed seed 42 found 267/386 inliers for T43QBB and 200/270 for T43RGM, still
+occupying only 9/16 coarse cells. Fitted residual RMSE was 0.39 m and 0 m,
+respectively. These near-zero fitted residuals are not independent accuracy
+evidence and may reflect a concentrated subset of matching features; they do
+not resolve the user's visual report of approximately one-pixel local
+residuals. The existing registered rasters and CSVs have not been overwritten
+and still contain the earlier fit. The separate rasters and metrics are in
+`outputs/registered_15m/`; visually compare the old and new aligned images in
+QGIS before adopting the revised transform:
+
+```powershell
+.\venv\Scripts\python.exe src\preprocessing\phase2.py register --output-root outputs\registered_15m
+```
+
+Independent stable checkpoints are still required.
 
 ### Cloud, shadow, and atmospheric-quality assessment
 
@@ -179,10 +211,12 @@ their ranges below are planning estimates, not benchmark results.
 | Phase 2 end-to-end, initial run | About 1 hr 35 min–2 hr 20 min | Measured Sen2Cor plus estimated preparation and registration |
 
 These are machine- and storage-dependent estimates for the inspected CPU-only
-Windows machine. Sen2Cor logs provide per-scene timings; exact preparation and
-registration timings should be captured on a future clean run if tighter
-estimates are required. Existing outputs are skipped by the idempotent
-commands, so a rerun with outputs present is not a representative benchmark.
+Windows machine. The workflow now appends per-item wall-clock records for
+Sen2Cor, preparation, and registration to `outputs/reports/phase2_timings.csv`;
+records distinguish completed, failed, and skipped items. Existing outputs
+are skipped by the idempotent Sen2Cor/preparation commands, so skipped timings
+are not processing benchmarks. A clean preparation/registration rerun would be
+needed to replace the current planning estimates with measured runtimes.
 
 ## Outputs and completion checks
 
@@ -190,9 +224,12 @@ commands, so a rerun with outputs present is not a representative benchmark.
 - `outputs/sen2cor/logs/`: Sen2Cor stdout/stderr per product.
 - `outputs/processed/`: metadata-scaled six-band reflectance stacks and
   per-date validity masks, plus a per-product summary CSV with SCL-valid area,
-  grid metadata, and the gain/offset values read from the product metadata.
+  grid metadata, and the gain/offset values read from the product metadata;
+  `atmospheric_quality.csv` records the SCL/AOT/WVP diagnostic summary.
 - `outputs/registered/`: aligned later-date stacks, common-valid masks, and
   registration metric CSV files.
+- `outputs/reports/phase2_timings.csv`: per-item elapsed-time records for
+  Sen2Cor, preparation, and registration commands.
 
 The script is idempotent for completed Sen2Cor products and prepared stacks.
 All four Sen2Cor logs report successful termination, and each processed

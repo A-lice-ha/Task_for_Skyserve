@@ -21,6 +21,7 @@
 !/outputs/processed/.gitkeep
 /outputs/registered/*
 !/outputs/registered/.gitkeep
+/outputs/registered_15m/
 /outputs/sen2cor/*
 !/outputs/sen2cor/.gitkeep
 

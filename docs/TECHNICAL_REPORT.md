@@ -131,6 +131,9 @@ Their SCL-derived valid areas are 99.9937% (12,055.286 km²) for T43QBB
 T43RGM 2026-10-22. The common-valid fractions are 89.2592% for the T43QBB
 pair and 99.9958% for the T43RGM pair. These are SCL-mask coverage values,
 not guarantees of cloud- or haze-free observations.
+The common-valid mask also does not mean land-only: clear sea pixels are valid
+under SCL and remain in the full-tile coverage denominator. The source mask is
+preserved; land/AOI filtering is a separate labeling concern.
 
 ### Cloud/shadow coverage and atmospheric quality
 
@@ -177,21 +180,28 @@ SCL/AOT/water-vapour results and interpretation are in
 Sen2Cor log totals measure 12:56, 13:43, 14:36, and 13:32 per scene (54:47
 for all four, sequentially). Preparation of the four full-tile stacks is
 estimated at 30–60 minutes, and registration of both pairs at 10–25 minutes;
-these latter stages were not separately timed. Thus a first Phase 2 run is
-budgeted at approximately 1 hr 35 min–2 hr 20 min on the inspected CPU-only
-machine. See the Phase 2 document for assumptions and caveats.
+these latter stages were not separately timed on the original run. The updated
+workflow records per-item elapsed time for future non-skipped runs. Thus the
+first Phase 2 run is budgeted at approximately 1 hr 35 min–2 hr 20 min on the
+inspected CPU-only machine. See the Phase 2 document for assumptions and
+caveats.
 
 Run the implemented stages from the repository root:
 
 ```powershell
 .\venv\Scripts\python.exe src\preprocessing\phase2.py sen2cor
 .\venv\Scripts\python.exe src\preprocessing\phase2.py prepare
+.\venv\Scripts\python.exe src\preprocessing\phase2.py quality
 .\venv\Scripts\python.exe src\preprocessing\phase2.py register
 ```
 
 By default, Sen2Cor products and logs go under `outputs/sen2cor/`, reflectance
-stacks under `outputs/processed/`, and registration outputs under
-`outputs/registered/`. Large derived rasters are ignored by Git.
+stacks and an SCL/AOT/water-vapour quality summary under
+`outputs/processed/`, and registration outputs under `outputs/registered/`.
+The quality summary is reproducible and does not apply an unvalidated AOT
+threshold. Per-item stage timings are appended to
+`outputs/reports/phase2_timings.csv`; skipped outputs are recorded as skipped,
+not as measured processing runs. Large derived rasters are ignored by Git.
 
 Although products from a single MGRS tile usually have compatible map
 coordinates, this does not prove pixel-level alignment. Residual shifts can
@@ -218,6 +228,17 @@ before/after imagery, residual-map inspection, and independent stable check
 points remain outstanding. A 10 m displacement can produce change-like edges
 around buildings and roads; unsupported regions must be excluded or marked
 uncertain.
+
+The registration implementation was subsequently tightened: RANSAC now uses
+a fixed seed (42) and a 15 m ground-distance tolerance converted to the
+downsampled preview's pixel units, rather than a fixed 1.5 preview pixels. A
+separate comparison run produced 267/386 inliers and 0.39 m fitted RMSE for
+T43QBB, and 200/270 inliers and 0 m fitted RMSE for T43RGM; both still occupy
+only 9/16 coarse cells. The alternative registered rasters and CSVs are in
+`outputs/registered_15m/`; the prior registered TIFFs and CSVs were preserved.
+Near-zero fitted residuals are not independent accuracy evidence. Review the
+two outputs visually and obtain independent stable checkpoints before
+adopting the revised transforms.
 
 The implementation must be windowed: one full-tile 10 m float32 band is about
 1.93 GB decimal, exceeding available free RAM on the inspected development
@@ -283,6 +304,19 @@ windows record per-block inclusion probabilities; ranked windows are
 deterministic. All candidates have unassigned splits and null classes. These
 enriched candidates are for review/training-candidate
 discovery, not unbiased test metrics or ground truth.
+The Mumbai candidate generator now screens persistent-water interiors
+(MNDWI > 0 and NDVI < 0.2 in both dates) more than 500 m from non-water,
+while retaining shoreline buffers and pixels matching the water-to-impervious
+review rule. The 135 Mumbai windows remain candidate-only; their review-area
+fractions range from 0.8135 to 1.0 (median 0.9955). The screen marks 0.64% of
+the full tile as persistent offshore-water interior; this is a heuristic
+screened fraction, not an estimate of total sea area. It only changes candidate
+scoring/selection; it does not alter the common-valid mask or prove that
+retained water transitions are bridges. The Mumbai GeoJSON records the filter
+and per-window review-area fraction for QGIS review. A companion
+`outputs/processed/mumbai_candidate_review_area.tif` is written on the 10 m
+grid (1=retained review area, 0=screened stable offshore water) for optional
+QGIS overlay; it is not a land classification or training mask.
 
 The planned label format records `change_category`, `change_class`,
 `non_target_subtype`, `confidence`, `annotator`, `notes`, pair dates, city,

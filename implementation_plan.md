@@ -95,15 +95,15 @@ Cross-tile comparison (T43QBB vs T43RGM) is generally **not valid** for pixel-le
 **Working resolution:** Resample all bands to **10m** using bilinear (continuous) or nearest-neighbor (masks) interpolation. Justify in report.
 
 #### 1.3 Identify Data Gaps
-- [ ] Cloud/shadow coverage per tile — metadata cloud assessment is recorded; per-pixel usable coverage remains for preprocessing
-- [ ] Atmospheric quality (haze, cirrus from B10)
+- [x] Measure per-pixel SCL cloud/cirrus/shadow coverage and record per-scene AOT/WVP distributions; visual haze review and validated haze exclusion remain
+- [x] Record Sen2Cor AOT/WVP estimates and SCL classes; no automatic haze threshold is applied without validation
 - [x] Check expected band file presence and supplied quality reports; full JP2 decode/integrity validation remains
 - [x] Seasonal context: Dec (winter/dry) vs May (spring/green) for Pair A; Oct vs Oct for Pair B
 - [x] Identify additional data needs: OSM building footprints, date-appropriate reference imagery/records, optional DEM, and land-cover context
 
 #### 1.4 Computational Resources
 - [x] Document available GPU/CPU, RAM, storage
-- [ ] Estimate processing time per phase after representative processing/model benchmarks
+- [x] Measure Sen2Cor time and estimate preparation/registration runtime; workflow now records per-item timings for later non-skipped runs
 - [x] Record preliminary onboard vs ground hardware assumptions; confirm target hardware in Phase 3
 
 ---

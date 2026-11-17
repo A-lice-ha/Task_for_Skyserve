@@ -13,6 +13,7 @@ import time
 import xml.etree.ElementTree as ET
 from contextlib import ExitStack
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from pathlib import Path
 
 import cv2
@@ -49,6 +50,7 @@ SPECTRAL_BAND_IDS = {
 SCL_INVALID_CLASSES = {0, 1, 3, 7, 8, 9, 10, 11}
 NODATA = -9999.0
 BLOCK_SIZE = 512
+REGISTRATION_RANSAC_SEED = 42
 
 
 @dataclass(frozen=True)
@@ -107,6 +109,141 @@ def read_radiometry(metadata_path: Path) -> Radiometry:
             f"{metadata_path} is missing {offset_tag} for: {', '.join(missing)}"
         )
     return Radiometry(gain, offsets, offset_tag, gain_tag)
+
+
+def _metadata_scalar(root: ET.Element, tag: str, metadata_path: Path) -> float:
+    elements = _metadata_values(root, tag)
+    if not elements or elements[0].text is None:
+        raise ValueError(f"{metadata_path} has no {tag}")
+    value = float(elements[0].text)
+    if not np.isfinite(value) or value <= 0:
+        raise ValueError(f"{metadata_path} has invalid {tag}: {value}")
+    return value
+
+
+def _quality_raster(granule: Path, layer: str, resolution: int) -> Path:
+    suffix = f"_{layer}_{resolution}m.jp2"
+    candidates = sorted(path for path in granule.rglob(f"*{suffix}") if path.is_file())
+    if len(candidates) != 1:
+        raise FileNotFoundError(
+            f"Expected one {layer} {resolution}m raster under {granule}, "
+            f"found {len(candidates)}"
+        )
+    return candidates[0]
+
+
+def _class_counts(dataset: rasterio.io.DatasetReader) -> np.ndarray:
+    counts = np.zeros(256, dtype=np.uint64)
+    for window in _windows(dataset):
+        values = dataset.read(1, window=window)
+        counts += np.bincount(values.ravel(), minlength=256).astype(
+            np.uint64, copy=False
+        )[:256]
+    return counts
+
+
+def _digital_number_histogram(
+    dataset: rasterio.io.DatasetReader,
+) -> np.ndarray:
+    histogram = np.zeros(65536, dtype=np.uint64)
+    for window in _windows(dataset):
+        values = dataset.read(1, window=window).astype(np.uint16, copy=False)
+        values = values[values > 0]
+        if values.size:
+            histogram += np.bincount(values, minlength=65536).astype(
+                np.uint64, copy=False
+            )[:65536]
+    return histogram
+
+
+def _histogram_quantile(histogram: np.ndarray, quantile: float) -> int | None:
+    total = int(histogram.sum())
+    if total == 0:
+        return None
+    rank = max(1, int(np.ceil(quantile * total)))
+    return int(np.searchsorted(np.cumsum(histogram), rank, side="left"))
+
+
+def summarize_atmospheric_quality(product: Path) -> dict[str, int | float | str | None]:
+    """Summarize native SCL, AOT, and WVP rasters without applying thresholds."""
+    metadata_path = product / "MTD_MSIL2A.xml"
+    if not metadata_path.is_file():
+        raise FileNotFoundError(f"Not a Sen2Cor L2A product: {product}")
+    metadata = ET.parse(metadata_path).getroot()
+    aot_gain = _metadata_scalar(metadata, "AOT_QUANTIFICATION_VALUE", metadata_path)
+    wvp_gain = _metadata_scalar(metadata, "WVP_QUANTIFICATION_VALUE", metadata_path)
+    granule = _find_granule(product)
+    scl_path = _quality_raster(granule, "SCL", 20)
+    aot_path = _quality_raster(granule, "AOT", 10)
+    wvp_path = _quality_raster(granule, "WVP", 10)
+
+    with rasterio.open(scl_path) as scl:
+        counts = _class_counts(scl)
+    total_scl = int(counts.sum())
+    if total_scl == 0:
+        raise ValueError(f"Empty SCL raster: {scl_path}")
+
+    row: dict[str, int | float | str | None] = {
+        "product": product.name,
+        "scl_pixels": total_scl,
+        "cloud_cirrus_percent": 100.0 * int(counts[8:11].sum()) / total_scl,
+        "cloud_shadow_percent": 100.0 * int(counts[3]) / total_scl,
+        "dark_area_percent": 100.0 * int(counts[2]) / total_scl,
+        "unclassified_percent": 100.0 * int(counts[7]) / total_scl,
+    }
+    for class_id, count in enumerate(counts):
+        row[f"scl_class_{class_id}_pixels"] = int(count)
+        row[f"scl_class_{class_id}_percent"] = 100.0 * int(count) / total_scl
+
+    for layer, path, gain in (
+        ("aot", aot_path, aot_gain),
+        ("wvp", wvp_path, wvp_gain),
+    ):
+        with rasterio.open(path) as dataset:
+            histogram = _digital_number_histogram(dataset)
+        count = int(histogram.sum())
+        row[f"{layer}_valid_pixels"] = count
+        row[f"{layer}_median"] = (
+            _histogram_quantile(histogram, 0.5) / gain if count else None
+        )
+        row[f"{layer}_p98"] = (
+            _histogram_quantile(histogram, 0.98) / gain if count else None
+        )
+    return row
+
+
+def write_atmospheric_quality(products: list[Path], output_path: Path) -> Path:
+    rows = [summarize_atmospheric_quality(product) for product in products]
+    if not rows:
+        raise ValueError("No L2A products supplied for atmospheric quality summary")
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    with output_path.open("w", newline="", encoding="utf-8") as file:
+        writer = csv.DictWriter(file, fieldnames=rows[0].keys())
+        writer.writeheader()
+        writer.writerows(rows)
+    return output_path
+
+
+def _record_timing(
+    output_root: Path, stage: str, item: str, status: str, elapsed_seconds: float
+) -> None:
+    timing_path = output_root.parent / "reports" / "phase2_timings.csv"
+    timing_path.parent.mkdir(parents=True, exist_ok=True)
+    fields = ("recorded_at_utc", "stage", "item", "status", "elapsed_seconds")
+    write_header = not timing_path.exists()
+    with timing_path.open("a", newline="", encoding="utf-8") as file:
+        writer = csv.DictWriter(file, fieldnames=fields)
+        if write_header:
+            writer.writeheader()
+        writer.writerow(
+            {
+                "recorded_at_utc": datetime.now(timezone.utc).isoformat(),
+                "stage": stage,
+                "item": item,
+                "status": status,
+                "elapsed_seconds": f"{elapsed_seconds:.3f}",
+            }
+        )
 
 
 def apply_radiometry(digital_numbers: np.ndarray, gain: float, offset: float) -> np.ndarray:
@@ -169,7 +306,13 @@ def run_sen2cor(
     output_dir.mkdir(parents=True, exist_ok=True)
     existing = _find_l2a_products(output_dir)
     if existing:
+        if len(existing) != 1:
+            raise RuntimeError(
+                f"Expected one existing L2A product under {output_dir}, "
+                f"found {len(existing)}"
+            )
         print(f"Sen2Cor output already exists; skipping: {existing[0]}")
+        _record_timing(output_root, "sen2cor", product.name, "skipped", 0.0)
         return existing[0]
 
     userprofile = Path.home()
@@ -202,6 +345,7 @@ def run_sen2cor(
             timeout=1800,
         )
     except subprocess.TimeoutExpired as error:
+        elapsed = time.monotonic() - started
         stdout = error.stdout or ""
         stderr = error.stderr or ""
         if isinstance(stdout, bytes):
@@ -209,16 +353,19 @@ def run_sen2cor(
         if isinstance(stderr, bytes):
             stderr = stderr.decode(errors="replace")
         log_path.write_text(stdout + stderr, encoding="utf-8", errors="replace")
+        _record_timing(output_root, "sen2cor", product.name, "failed", elapsed)
         raise RuntimeError(
             f"Sen2Cor exceeded the 1800-second timeout for {product.name}; "
             f"inspect {log_path}"
         ) from error
     except subprocess.CalledProcessError as error:
+        elapsed = time.monotonic() - started
         stdout = error.stdout or ""
         stderr = error.stderr or ""
         log_path.write_text(
             stdout + stderr, encoding="utf-8", errors="replace"
         )
+        _record_timing(output_root, "sen2cor", product.name, "failed", elapsed)
         raise RuntimeError(
             f"Sen2Cor failed for {product.name} with exit code "
             f"{error.returncode}; inspect {log_path}. "
@@ -228,16 +375,18 @@ def run_sen2cor(
         result.stdout + result.stderr, encoding="utf-8", errors="replace"
     )
     elapsed = time.monotonic() - started
-    print(
-        f"Sen2Cor completed {product.name} in {elapsed:.1f}s; log: {log_path}",
-        flush=True,
-    )
     products = _find_l2a_products(output_dir)
     if len(products) != 1:
+        _record_timing(output_root, "sen2cor", product.name, "failed", elapsed)
         raise RuntimeError(
             f"Expected one L2A product under {output_dir}, found {len(products)}; "
             f"inspect {log_path}"
         )
+    _record_timing(output_root, "sen2cor", product.name, "completed", elapsed)
+    print(
+        f"Sen2Cor completed {product.name} in {elapsed:.1f}s; log: {log_path}",
+        flush=True,
+    )
     return products[0]
 
 
@@ -514,11 +663,20 @@ def estimate_registration(
     target_points = np.float32(
         [reference_points[match.trainIdx].pt for match in matches]
     )
+    reference_scale_x = reference.width / reference_image.shape[1]
+    reference_scale_y = reference.height / reference_image.shape[0]
+    preview_pixel_size_m = np.sqrt(
+        abs(reference.transform.a * reference_scale_x)
+        * abs(reference.transform.e * reference_scale_y)
+    )
+    ransac_threshold_m = 15.0
+    ransac_threshold_pixels = ransac_threshold_m / preview_pixel_size_m
+    cv2.setRNGSeed(REGISTRATION_RANSAC_SEED)
     matrix, inlier_mask = cv2.estimateAffinePartial2D(
         source_points,
         target_points,
         method=cv2.RANSAC,
-        ransacReprojThreshold=1.5,
+        ransacReprojThreshold=ransac_threshold_pixels,
         maxIters=10000,
         confidence=0.999,
         refineIters=20,
@@ -535,8 +693,6 @@ def estimate_registration(
 
     predicted = cv2.transform(source_points[inliers, None, :], matrix)[:, 0, :]
     residuals = predicted - target_points[inliers]
-    reference_scale_x = reference.width / reference_image.shape[1]
-    reference_scale_y = reference.height / reference_image.shape[0]
     pixel_width = abs(reference.transform.a)
     pixel_height = abs(reference.transform.e)
     residual_m = np.column_stack(
@@ -588,6 +744,7 @@ def estimate_registration(
         "max_error_m": max_error_m,
         "inlier_grid_cells_occupied": occupied_cells,
         "inlier_grid_cells_total": 16,
+        "ransac_threshold_m": ransac_threshold_m,
         "shift_x_m": float(matrix[0, 2] * source_scale_x * pixel_width),
         "shift_y_m": float(matrix[1, 2] * source_scale_y * pixel_height),
     }
@@ -775,8 +932,36 @@ def command_prepare(args: argparse.Namespace) -> None:
     if not products:
         raise FileNotFoundError(f"No MTD_MSIL2A.xml found under {args.l2a_root}")
     for product in products:
-        output = prepare_product(product, args.output_root)
+        expected_output = args.output_root / f"{product.name}.reflectance.tif"
+        was_prepared = expected_output.exists()
+        started = time.monotonic()
+        try:
+            output = prepare_product(product, args.output_root)
+        except Exception:
+            _record_timing(
+                args.output_root,
+                "prepare",
+                product.name,
+                "failed",
+                time.monotonic() - started,
+            )
+            raise
+        _record_timing(
+            args.output_root,
+            "prepare",
+            product.name,
+            "skipped" if was_prepared else "completed",
+            time.monotonic() - started,
+        )
         print(f"Prepared reflectance stack: {output}")
+
+
+def command_quality(args: argparse.Namespace) -> None:
+    products = _find_l2a_products(args.l2a_root)
+    if not products:
+        raise FileNotFoundError(f"No MTD_MSIL2A.xml found under {args.l2a_root}")
+    output = write_atmospheric_quality(products, args.output)
+    print(f"Atmospheric quality summary: {output}")
 
 
 def command_register(args: argparse.Namespace) -> None:
@@ -788,11 +973,28 @@ def command_register(args: argparse.Namespace) -> None:
     ):
         before_stack = args.stack_root / f"{before_product.name}.reflectance.tif"
         after_stack = args.stack_root / f"{after_product.name}.reflectance.tif"
-        register_pair(
-            before_stack,
-            after_stack,
+        pair_name = (
+            f"{tile}_{before_product.name.split('_')[2]}_"
+            f"{after_product.name.split('_')[2]}"
+        )
+        started = time.monotonic()
+        try:
+            register_pair(before_stack, after_stack, args.output_root, pair_name)
+        except Exception:
+            _record_timing(
+                args.output_root,
+                "register",
+                pair_name,
+                "failed",
+                time.monotonic() - started,
+            )
+            raise
+        _record_timing(
             args.output_root,
-            f"{tile}_{before_product.name.split('_')[2]}_{after_product.name.split('_')[2]}",
+            "register",
+            pair_name,
+            "completed",
+            time.monotonic() - started,
         )
 
 
@@ -823,6 +1025,19 @@ def build_parser() -> argparse.ArgumentParser:
         "--output-root", type=Path, default=ROOT / "outputs" / "processed"
     )
     prepare_parser.set_defaults(function=command_prepare)
+
+    quality_parser = subparsers.add_parser(
+        "quality", help="Summarize native SCL, AOT, and water-vapour products"
+    )
+    quality_parser.add_argument(
+        "--l2a-root", type=Path, default=ROOT / "outputs" / "sen2cor" / "l2a"
+    )
+    quality_parser.add_argument(
+        "--output",
+        type=Path,
+        default=ROOT / "outputs" / "processed" / "atmospheric_quality.csv",
+    )
+    quality_parser.set_defaults(function=command_quality)
 
     register_parser = subparsers.add_parser(
         "register", help="Estimate and apply same-tile pair registration"

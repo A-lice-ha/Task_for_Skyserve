@@ -9,7 +9,9 @@ from src.training.generate_candidates import (
     _feature,
     _indices,
     _interval_type,
+    _persistent_water_pixels,
     _select_candidates,
+    _stable_water_review_area,
     _validate_replaceable_candidate,
 )
 
@@ -33,6 +35,36 @@ def test_interval_type_uses_acquisition_dates():
         "short_interval_cross_season"
     )
     assert _interval_type("2023-10-06", "2026-10-22") == "multi_year"
+
+
+def test_stable_water_screen_excludes_open_water_but_keeps_shore_and_transition():
+    stable_water = np.zeros((100, 100), dtype=np.uint8)
+    stable_water[10:90, 10:90] = 1
+    water_transition = np.zeros_like(stable_water, dtype=bool)
+    water_transition[50, 50] = True
+
+    review_area = _stable_water_review_area(
+        stable_water, water_transition, buffer_pixels=5
+    )
+
+    assert not review_area[50, 30]
+    assert review_area[11, 50]
+    assert review_area[50, 50]
+    assert review_area[5, 50]
+
+
+def test_persistent_water_requires_both_dates_and_low_vegetation_signal():
+    before_mndwi = np.array([[0.2, 0.1, 0.1]])
+    after_mndwi = np.array([[0.1, 0.1, 0.1]])
+    before_ndvi = np.array([[0.05, 0.25, 0.05]])
+    after_ndvi = np.array([[0.1, 0.1, 0.05]])
+    valid = np.ones((1, 3), dtype=bool)
+
+    water = _persistent_water_pixels(
+        before_mndwi, after_mndwi, before_ndvi, after_ndvi, valid
+    )
+
+    assert water.tolist() == [[True, False, True]]
 
 
 def test_selection_includes_top_signal_and_random_below_threshold():
@@ -108,6 +140,7 @@ def test_geojson_feature_remains_unreviewed_and_has_block_tags():
         "transform": Affine(10, 0, 200000, 0, -10, 2200000),
         "spatial_block_id": "T43QBB_E0200_N2200",
         "valid_fraction": 1.0,
+        "review_area_fraction": 0.9,
         "index_signal_score": 2.0,
         "percentiles": {
             "ndvi": (-0.1, 0.0, 0.2),
@@ -138,6 +171,7 @@ def test_geojson_feature_remains_unreviewed_and_has_block_tags():
     assert feature["properties"]["spatial_block_id"] == patch["spatial_block_id"]
     assert feature["properties"]["planned_split_buffer_m"] == 2000
     assert feature["properties"]["candidate_selection_probability"] is None
+    assert feature["properties"]["review_area_fraction"] == 0.9
     assert feature["geometry"]["type"] == "Polygon"
 
 
