@@ -1,5 +1,13 @@
 # Phase 2 — Preprocessing and registration
 
+> **Update (2026-11-18).** All later stages use the default registered
+> rasters in `outputs/registered/` (not the 15 m comparison). The user's
+> visual check found about one pixel of residual displacement in both
+> pairs; this residual is modelled rather than removed: weak labels use a
+> 3×3 registration tolerance and register areas carry ± one boundary pixel
+> ([DECISION_LOG D-002, D-005](DECISION_LOG.md)). Independent stable
+> checkpoints were not measured.
+
 ## Implementation
 
 Run the three stages from the repository root in an activated Python 3.10

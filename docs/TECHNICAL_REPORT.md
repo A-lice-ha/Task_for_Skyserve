@@ -1,26 +1,48 @@
 # Man-Made Change Detection from Sentinel-2 Imagery
 
-**Technical report — working document**  
-**Status:** Requirements and data audit completed; implementation, experiments,
-and results are in progress. This report distinguishes verified facts from
-proposed methods. No change detections or model-performance results are claimed
-yet.
+**Technical report — submission version, 2026-11-18.**
+All numbers are measured unless marked as a plan or limit. Detailed results:
+[PHASE_5_EVALUATION.md](PHASE_5_EVALUATION.md); decisions:
+[DECISION_LOG.md](DECISION_LOG.md); reproduction: [README](../README.md).
 
 ## Executive summary
 
-The supplied data comprise four Sentinel-2A Level-1C products. They support two
-same-tile temporal comparisons: T43QBB from December 2022 to May 2023, and
-T43RGM from October 2023 to October 2026. The two tiles are geographically
-disjoint and must not be compared pixel by pixel.
-
-The products contain the 13 spectral bands and pass the supplied metadata
-quality reports. They do not include reference change labels. Reliable
-comparison therefore still requires pixel-level quality assessment,
-registration, radiometric assessment, and independently reviewed labels. The
-development machine has no identified discrete GPU, so the initial workflow is
-designed for windowed CPU processing. Model results, detections, and
-quantization measurements will be added only after the corresponding work is
-implemented and evaluated.
+- **Data.** Two same-tile Sentinel-2A pairs: Mumbai T43QBB 2022-12-23 →
+  2023-05-12 (140 days) and Delhi T43RGM 2023-10-06 → 2026-10-22 (1,112
+  days). Processed to L2A with Sen2Cor, six-band 10 m stacks, registered with
+  ~1 px residual; Delhi's 2026 scene has regional haze that the SCL mask misses.
+- **Labels.** No labels were supplied. Training used rule-based weak labels
+  (built-up gain/loss with a one-pixel registration tolerance, haze and
+  vegetation ambiguity rules). Evaluation used a **blind human review of all
+  306 candidate windows**: only 24 (8 %) contain man-made change, 62 are
+  undecidable, the rest are agricultural, water or acquisition effects.
+- **Models.** Ground: Siamese U-Net, 1.18 M parameters, 3 classes (no change,
+  built-up gain, loss), change types assigned per detection by transparent
+  rules. Onboard: Siamese MobileNetV3-Small, 0.28 M parameters, 4 bands,
+  binary. CPU-only training with a 9-run search over loss × learning rate
+  plus a jitter ablation; 10 km block splits with a 2 km buffer and a
+  zero-shot block per city.
+- **Main result (negative, measured).** The pixel models reproduce the weak
+  rules' bias: the amount of detected change ranks windows **worse than
+  chance** (held-out AUROC 0.355, 95 % CI 0.244–0.479), and no learned model is
+  materially better than the rule baseline (test F1 0.20 vs 0.17, CIs fully
+  overlapping; block-CV F1 0.14 vs 0.13, equal to flagging every window).
+  A human-corrected fine-tune did not change this.
+- **What works.** A second-stage window context filter fitted only on
+  train-block reviews ranks held-out windows well (AUROC 0.761,
+  CI 0.637–0.863; natural false-alarm rate 5.5 % vs 74 %). It is applied
+  tile-wide to **prioritise** the detection register: 47 % of detections in
+  flagged cells lie in reviewer-accepted windows vs 3.5 % elsewhere.
+- **Quantization.** ONNX Runtime static INT8 (Conv-only): ground model 4.50 →
+  1.21 MiB, 124 → 83 ms per 256 px window on 1 thread, unchanged window-level
+  F1, 99.8 % pixel agreement, but 15 % of the smallest (≤ 10 px) detections
+  are lost, so the ground register uses FP32. INT8 gives no speed-up for the
+  already small onboard model on this CPU.
+- **Deliverables.** Georeferenced full-tile change maps for both cities, a
+  detection register (86,982 polygons with type, area ± uncertainty,
+  confidence, context score and review status; 831 prioritised), evidence
+  panels for accepted, rejected, missed and uncertain cases, original and
+  INT8 model artifacts, configs, seeds, 52 unit tests and the AI usage record.
 
 ## 1. Objective, scope, and change classes
 
@@ -97,12 +119,10 @@ imagery or authoritative construction records are preferable for label review.
 A DEM is an optional additional input if terrain illumination or relief is
 material; land-cover data may aid context but cannot substitute for labels.
 
-The historical OSM downloader and its date/coverage limitations are documented
-in [`HISTORICAL_OSM.md`](./HISTORICAL_OSM.md). Its default Delhi snapshot is
-2023-10-06 at 23:59:59 UTC. The corresponding Sentinel-2 acquisition was at
-05:27:01 UTC, so the snapshot may include edits made after that day's image;
-this is not an exact OSM state at satellite overpass and must not be used as
-physical change-date ground truth.
+The historical OSM downloader is implemented and documented in
+[`HISTORICAL_OSM.md`](./HISTORICAL_OSM.md), but the extraction was **dropped**
+for this submission: the public Overpass service returned only 26 responses
+(Mumbai T1) in about 2.5 hours. No result uses OSM (D-003).
 
 ## 3. Preprocessing and registration
 
@@ -251,177 +271,184 @@ The implementation must be windowed: one full-tile 10 m float32 band is about
 1.93 GB decimal, exceeding available free RAM on the inspected development
 machine. Full-tile multi-band arrays are not a safe processing strategy here.
 
+### How the preprocessing limits were handled downstream
+
+- **~1 px residual misregistration:** the default registered rasters (not
+  the 15 m comparison) are used throughout. Weak gain/loss requires the
+  change to exceed the 3×3 neighbourhood maximum of the earlier date, so a
+  one-pixel edge shift cannot create change (unit-tested); register areas
+  carry ± one boundary pixel of uncertainty.
+- **Haze missed by SCL:** a regional rule (31×31 px mean blue increase
+  ≥ 0.035) marks hazy areas ambiguous for training; reviewers labelled 74
+  windows `acquisition_artifact`; haze is one of the context-filter features.
+- **Valid sea pixels:** persistent offshore water in Mumbai is excluded from
+  weak labels and candidate scoring.
+
 ## 4. Model and deployment design
 
-Two CPU-capable PyTorch architectures are implemented in
-[`../src/models/siamese.py`](../src/models/siamese.py): a shared-weight,
-six-band Siamese U-Net returning seven per-pixel semantic logits, and a
-four-band, half-width MobileNetV3-Small Siamese network returning binary
-change/no-change logits. The ground model uses a custom encoder rather than
-ResNet/EfficientNet because the inputs are multispectral and no suitable
-pretrained weights are supplied; the onboard model's first layer is adapted
-to four channels and initialized without ImageNet weights. Architectural
-tradeoffs and the class/band order are recorded in
-[`PHASE_3_ARCHITECTURE.md`](./PHASE_3_ARCHITECTURE.md).
+Two Siamese (shared-weight) architectures are implemented in
+[`../src/models/siamese.py`](../src/models/siamese.py) and trained from
+scratch (no pretrained weights exist for these six-band inputs):
 
-On the inspected CPU-only development machine, batch-1 256×256 synthetic
-patch profiling with four CPU threads measured 4,696,743 parameters,
-40.35 GFLOPs, 0.246 s first-forward latency, and 455.3 MiB sampled process RSS
-for the ground model; the onboard model measured 279,274 parameters,
-0.118 GFLOPs, 0.025 s, and 241.3 MiB sampled process RSS. These are proxy
-measurements, not target-device benchmarks or sustained throughput; the
-onboard <5M parameter limit is met, but its power, memory behavior, and
-latency remain unverified on an actual edge device. Neither model has been
-trained, calibrated, or evaluated for accuracy.
+| | Ground model | Onboard model |
+|---|---|---|
+| Architecture | Siamese U-Net, widths (16, 32, 64, 128); features of both dates and their absolute difference fused at each scale | Siamese MobileNetV3-Small (width 0.5), difference fusion, light decoder |
+| Input | B02, B03, B04, B08, B11, B12 (10 m; 20 m bands resampled) | B02, B03, B04, B08 (native 10 m only) |
+| Output | 3 classes: no change, built-up gain, built-up loss | change / no change |
+| Parameters | 1,175,571 | 279,274 (< 5 M limit) |
+| FP32 / INT8 size | 4.50 / 1.21 MiB | 1.13 / 0.73 MiB |
+| Latency per 256 px window, 1 thread (FP32 / INT8) | 124 / 83 ms | 11 / 12 ms |
 
-Observed development system: Windows 11; AMD Ryzen 5 7530U, 6 cores / 12
-logical processors; 15.3 GiB RAM (about 4.6 GiB free when inspected); AMD
-integrated Radeon graphics; no discrete CUDA-capable GPU identified; about
-95.8 GiB free on C:. The initial training/inference baseline is CPU-only.
-Batch size, patch size, model size, and runtime targets must be established
-empirically on this hardware before any training commitment.
+Width was halved from the Phase 3 design (4.7 M parameters) to fit CPU
+training on the development machine (AMD Ryzen 5 7530U, 6 cores / 12
+threads, 15.3 GiB RAM with ~4 GiB free, no GPU). The 7-class head was
+replaced with 3 classes because spectral weak labels cannot separate road,
+bridge and other infrastructure; types are assigned per detection by
+recorded rules (D-006).
+
+**Deployment split.** Onboard: the 4-band binary model screens each pair
+and downlinks only change-candidate tiles (on this CPU about 6 ms per 256 px
+window with 4 threads, i.e. roughly 15 s per 110 km tile; not measured on
+flight hardware). Ground: the 6-band model, the context filter and the
+register run on full pairs (~5 min per tile per city on the development
+CPU), and analysts review detections in priority order. The onboard model is
+weak (weak-validation F1 0.21). Its encoder downsamples 32×, so few-pixel
+changes depend on the shallow skip features alone; before use as a screen it
+would need a stronger high-resolution decoder or a lower threshold.
 
 ## 5. Labels, training, and tuning
 
-Training cannot be claimed until labels are reviewed. A windowed, masked
-dataset reader for human-annotated six-band patches is implemented in
-[`../src/training/dataset.py`](../src/training/dataset.py). Unannotated and
-invalid pixels are ignored rather than assumed to be no-change, and
-conflicting overlapping labels fail explicitly.
+**Labels (D-004, D-005).** Weak labels from versioned rules
+([`../configs/weak_labels.json`](../configs/weak_labels.json)): built-up
+gain/loss from ΔNDBI with a 3×3 registration tolerance; gain on previously
+vegetated land, regional haze and components < 4 px are ambiguous (ignored);
+vegetation and water changes are explicit no-change (hard negatives);
+invalid and screened sea pixels are ignored. Weak labels are used only for
+training. The evaluation reference is the blind review of all 306 windows
+(D-008).
 
-A QGIS-ready GeoPackage at
-[`../data/labels/metro_label_grids.gpkg`](../data/labels/metro_label_grids.gpkg)
-contains 144 indexed 10 km blocks and an empty detailed-polygon annotation
-layer for each city. The grids follow the full T43QBB (Mumbai) and T43RGM
-(Delhi) raster footprints and have not yet been clipped to verified municipal
-study-area boundaries or assigned to spatial splits. Each block's common-valid
-percentage is SCL-mask coverage, not an atmospheric quality assessment.
-The label layers include pair, block, split, taxonomy, confidence, annotator,
-and evidence-date fields; an additive schema update preserved the empty
-annotation layers.
+**Splits (D-007, D-014).** Whole 10 km blocks per city, 50/25/25
+train/val/test (seed 20261118), a 2 km buffer between training cores and
+every non-training block, and one untouched zero-shot block per city (Navi
+Mumbai/Panvel; Noida). Temporal folds are impossible with one pair per city.
+Because human-labelled positives, not training data, are scarce, the window
+decision is also cross-validated over 5 block-grouped folds of all held-out
+windows instead of retraining per fold.
 
-Initial unreviewed candidate GeoJSONs are generated by
-[`../src/training/generate_candidates.py`](../src/training/generate_candidates.py):
-[`../data/labels/candidates/mumbai_candidates.geojson`](../data/labels/candidates/mumbai_candidates.geojson)
-contains 135 review windows (108 index-ranked, 27 random below-threshold), and
-[`../data/labels/candidates/delhi_candidates.geojson`](../data/labels/candidates/delhi_candidates.geojson)
-contains 171 (114 ranked, 57 random). Each feature is a 256×256-pixel review
-window, not an object polygon or assigned label. Random below-threshold
-windows record per-block inclusion probabilities; ranked windows are
-deterministic. All candidates have unassigned splits and null classes. These
-enriched candidates are for review/training-candidate
-discovery, not unbiased test metrics or ground truth.
-The Mumbai candidate generator now screens persistent-water interiors
-(MNDWI > 0 and NDVI < 0.2 in both dates) more than 500 m from non-water,
-while retaining shoreline buffers and pixels matching the water-to-impervious
-review rule. The 135 Mumbai windows remain candidate-only; their review-area
-fractions range from 0.8135 to 1.0 (median 0.9955). The screen marks 0.64% of
-the full tile as persistent offshore-water interior; this is a heuristic
-screened fraction, not an estimate of total sea area. It only changes candidate
-scoring/selection; it does not alter the common-valid mask or prove that
-retained water transitions are bridges. The Mumbai GeoJSON records the filter
-and per-window review-area fraction for QGIS review. A companion
-`outputs/processed/mumbai_candidate_review_area.tif` is written on the 10 m
-grid (1=retained review area, 0=screened stable offshore water) for optional
-QGIS overlay; it is not a land classification or training mask.
+**Training (D-010).** Patch bank of 1,923 train-core patches (96 px, 50 %
+weak-change), training-set band normalisation, rot90/flip and ±5 % per-date
+per-band gain jitter; AdamW with one-cycle LR; ambiguous/invalid pixels
+ignored. Class imbalance: plain CE, inverse-sqrt weighted CE and weighted
+CE + Dice were compared.
 
-The planned label format records `change_category`, `change_class`,
-`non_target_subtype`, `confidence`, `annotator`, `notes`, pair dates, city,
-spatial block, split assignment, and evidence date. The label
-protocol prohibits post-T2 reference information from deciding a label; use
-historical OSM only at or before T2. If the two Sentinel dates do not resolve
-the cause, use uncertain or leave unlabeled. Without independent date-matched
-high-resolution references, evaluation measures agreement with human-
-interpreted Sentinel-2 labels, not independent ground-truth accuracy.
+| Run (selected rows) | Weak-val P | R | F1 |
+|---|---:|---:|---:|
+| ground CE, 6 epochs, lr 3e-3 (learned baseline) | 0.537 | 0.446 | 0.488 |
+| ground wCE + Dice, 6 epochs, lr 3e-3 | 0.392 | 0.700 | 0.502 |
+| same without jitter | 0.381 | 0.745 | 0.504 |
+| ground CE final, 12 epochs | 0.593 | 0.521 | 0.555 |
+| ground wCE + Dice final, 12 epochs | 0.500 | 0.697 | 0.582 |
+| onboard wCE + Dice final, 25 epochs | 0.171 | 0.262 | 0.207 |
 
-The spatial plan uses approximately 10 km macro-blocks, whole-block
-conventional splits with a 2 km no-use buffer, and a separate untouched
-geographic test AOI in each city. Candidate-enriched samples must not be used
-as test samples; use exhaustive test coverage or probability sampling with
-known inclusion weights. A 10×10 km block may be too large for exhaustive
-manual labeling, so a smaller test AOI may be defined and recorded within it.
+Weak-validation scores measure agreement with the rules and were used only
+to rank runs. Final selection used the human-reviewed validation windows:
+`ground_ce_final` (D-015). Full table:
+[PHASE_5_EVALUATION.md §5.2](PHASE_5_EVALUATION.md).
 
-The acquisition metadata gives T43QBB a 140-day pair (2022-12-23 to
-2023-05-12) and T43RGM a 1,112-day pair (2023-10-06 to 2026-10-22), consistent
-with the Mumbai and Delhi footprints respectively. Each city has only one
-temporal pair. Thus block holdouts test geographic generalization within
-these acquisitions, not temporal generalization; city, season, interval,
-atmosphere, and registration conditions are confounded. Leave-one-city-out
-is a confounded stress test, not a temporal test. The Mumbai pair's mean solar
-zenith changes from 46.52° to 17.09°; Delhi's changes from 36.12° to 41.49°.
-Vegetation/harvest, shadow/BRDF, water/tide, and haze are plausible
-confounders, not pixel-level explanations without review.
-
-At 10 m with about one-pixel residual displacement, narrow roads, bridge
-decks, and individual buildings may be mixed within pixels. Retain requested
-classes for annotation if useful, but report instance counts and avoid strong
-per-class claims for rare or sub-pixel classes. The seven-class model head
-currently has no separate non-target subclasses; reconcile the taxonomy
-before training and never silently map vegetation, agriculture, tides, shadow,
-or haze to no-change. Confidence and non-target fields are not yet consumed by
-the current dataset reader or loss.
-
-For the seven-logit model, the appropriate masked baseline is multi-class
-cross-entropy (`ignore_index=255`) with optional multi-class Dice, not binary
-BCE. Use training-only normalization statistics and treat independent
-per-image percentile clipping as an ablation. OSCD is the closest listed
-Sentinel-2 pretraining source but needs geographic-overlap checks; downsampling
-very high-resolution RGB datasets to 10 m does not preserve their useful
-structural detail. CVA/index and random-forest baselines should precede a
-large deep-model search on the CPU-only system. No reviewed annotations,
-spatial splits, training run, or tuning trials currently exist.
+**Natural false positives** were addressed three ways: hard-negative weak
+labels, a human-corrected fine-tune on reviewed train-block windows (no
+improvement, D-013), and the second-stage context filter (D-016), which is
+the only step that measurably separates natural from man-made change.
 
 ## 6. Change analysis and validation
 
-Evaluation requires independently reviewed reference labels. Planned metrics
-include per-class and aggregate precision, recall, F1, IoU, and precision-recall
-curves; spatial localization error should also be reported when reference
-geometry supports it. Results must include label provenance, geographic split
-strategy, and uncertainty.
+Unit of evaluation: the reviewed 2.56 km window (pixel-accurate polygons
+were not feasible in the time available). k is chosen on validation and
+frozen; uncertain windows are never scored; bootstrap 95 % CIs.
 
-The planned detection register is georeferenced and includes a unique ID,
-geometry, pair, class, confidence, estimated area, optional linear length,
-accept/reject/uncertain status, and a reason for rejection. Accepted and
-rejected apparent changes, failures, and unassessable areas require before/after
-evidence. No model evaluation, accepted detection, rejected detection,
-measurement, or evidence panel has been produced at this stage.
+| Method | Test P / R / F1 (95 % CI) | Natural false-alarm rate | Held-out AUROC |
+|---|---|---:|---:|
+| Rule baseline (weak labels) | 0.100 / 0.667 / 0.174 [0.043, 0.327] | 0.698 | 0.374 |
+| Ground U-Net (`ground_ce_final`) | 0.114 / 0.833 / 0.200 [0.046, 0.351] | 0.736 | 0.355 |
+| Onboard (`onboard_final`) | 0.109 / 0.833 / 0.192 [0.044, 0.333] | 0.793 | 0.350 |
+| Ground + context filter (all held-out) | 0.125 / 0.100 / 0.111 [0, 0.333] | **0.055** | **0.761** |
+
+Gain/loss direction matched the reviewer on 6/6 held-out true positives.
+Per-class metrics (road 7 and demolition 1 windows) are not meaningful and
+are not claimed. The planned pixel-IoU proxy has no eligible windows,
+because no reviewed outline was marked fully correct.
+
+**Detection register** (`outputs/maps/detection_register_ground_fp32.csv`;
+priority layer `outputs/maps/priority_detections_ground_fp32.gpkg`): per
+detection, location (lat/lon and polygon in EPSG:32643), type and the rule
+that assigned it, area ± one-boundary-pixel uncertainty, length for roads,
+confidence and tier, context score, priority and window-level review
+status. There are 86,982 detections (Mumbai 28,693; Delhi 58,289), of which
+831 lie in context-flagged cells. Most detections are agricultural false
+alarms, so the register must be read in priority order.
+
+**Rejected changes with evidence.** 6,916 detections fall in windows the
+reviewer rejected (natural vegetation, water, acquisition artefact, no
+change). Before/after panels for rejected, false-alarm, missed, accepted and
+uncertain cases are in
+[`../outputs/evidence/README.md`](../outputs/evidence/README.md).
 
 ## 7. Quantization
 
-After a model is trained and validated, evaluate CPU-supported INT8
-post-training quantization (for example through ONNX Runtime) against the same
-FP32 evaluation data and comparable execution conditions. Record calibration
-data, supported operations, model size, parameter count, per-class metrics,
-peak memory, latency, and sensitivity to small changes. Quantization-aware
-training is optional if post-training quantization degrades performance.
-There is currently no trained model or quantized artifact, so no quantization
-result is available.
+ONNX Runtime static post-training quantization (D-011): QDQ format, Conv
+layers only, UINT8 activations, per-channel INT8 weights, MinMax calibration
+on 64 training patches; normalisation, temporal difference and softmax stay
+FP32. Measured on the same 306 windows, timings in fresh processes:
+
+| Model | Size MiB | Params | Latency ms, 1 / 4 threads | Peak RSS MiB | Test F1 | Pixel agreement | Small-change retention |
+|---|---:|---:|---|---:|---:|---:|---:|
+| Ground FP32 | 4.50 | 1,175,571 | 123.7 / 54.4 | 409 | 0.200 | – | – |
+| Ground INT8 | 1.21 | 1,175,571 | 83.5 / 42.0 | 399 | 0.200 | 0.9977 | 0.850 |
+| Onboard FP32 | 1.13 | 279,274 | 11.2 / 6.0 | 296 | 0.192 | – | – |
+| Onboard INT8 | 0.73 | 279,274 | 12.1 / 8.5 | 307 | 0.200 | 0.9961 | 0.762 |
+
+Full tiles: FP32 vs INT8 pixel agreement 0.998 / 0.997 and change IoU
+0.80 / 0.83 (Mumbai / Delhi). Small-change sensitivity is the main cost:
+INT8 misses 15 % of FP32 components ≤ 10 px. A variant sweep showed that
+quantizing all ops retains 92 % but is not faster, and percentile
+calibration retains 90 % at the same speed (the recommended next change).
+QAT was not needed for window-level accuracy and was not attempted.
 
 ## 8. Reproducibility, decisions, and AI usage
 
-The repository currently includes pinned Python dependencies in
-[`../requirements.txt`](../requirements.txt), ignore rules, a project
-directory structure, and a SHA-256 manifest. The PyTorch dependencies specify
-CPU wheels. Reproducible command-line entry points, preprocessing/model code,
-tests, fixed seeds, and a decision log remain to be added as implementation
-progresses. The environment has not yet been validated end-to-end.
+- Pinned dependencies ([`../requirements.txt`](../requirements.txt), CPU
+  PyTorch), product checksums, a frozen split manifest, versioned rule and
+  training configs (`configs/`), fixed seed 20261118 everywhere, per-run
+  configs and histories (`outputs/experiments/runs/`), and 52 unit tests.
+- Step-by-step commands and a 6 × 6 km demo are in the [README](../README.md).
+  Committed artifacts: both models (PyTorch, ONNX FP32, ONNX INT8),
+  quantization reports, window-filter parameters, FP32 change-class maps,
+  context grids, the register CSV, the priority GeoPackage and the evidence
+  panels. Larger derived rasters are regenerated by the listed commands.
+- Decisions D-001 to D-016 with alternatives and evidence:
+  [DECISION_LOG.md](DECISION_LOG.md).
+- AI usage: [`../AI_USAGE.md`](../AI_USAGE.md) indexes the full,
+  chronological transcripts of every GitHub Copilot and Claude Code session
+  on this repository (`docs/ai_usage/`), exported from local session logs
+  with injected system context and e-mail addresses removed (D-012).
 
-The assignment also requires `AI_USAGE.md` or `AI_USAGE.pdf` containing the
-complete chronological prompts and responses from all AI tools used. That
-record is separate from this report and has not yet been assembled; a summary
-or this report is not a substitute.
-
-## 9. Current status and remaining work
+## 9. Status and limitations
 
 | Assignment area | Status |
 |---|---|
-| Data audit and execution requirements | Metadata/file audit completed; cloud/usable-pixel and full decode checks remain |
-| Preprocessing and registration | All four products processed with Sen2Cor; metadata-driven six-band L2A stacks and SCL masks prepared; two same-tile pairs registered and coverage/residual metrics recorded; visual mask/alignment review and independent check-point validation remain |
-| Ground/onboard architecture | Both PyTorch models implemented and synthetic-forward tested; CPU patch profiling recorded; no training or target-device validation |
-| Training and tuning | Windowed labeled-patch reader implemented; no reviewed annotations or spatial splits, so training and tuning remain blocked |
-| Change analysis and validation | No detections or validation results |
-| Quantization | No model or measurements |
-| Reproducibility and AI record | Requirements/dependencies and data manifest exist; workflow and complete AI transcript remain |
+| Data audit | Complete (metadata, checksums, SCL coverage, AOT, haze finding) |
+| Preprocessing and registration | Complete; ~1 px residual accepted and modelled; no independent checkpoints |
+| Onboard/ground architecture | Implemented, trained and quantized; onboard not run on flight hardware |
+| Training and tuning | Complete: 9-run search, ablation, 3 final runs, human-corrected fine-tune |
+| Change analysis and validation | Complete on 306 reviewed windows; maps, register and evidence produced |
+| Quantization | Complete for both models: size, latency, memory, accuracy, small-change sensitivity |
+| Reproducibility and AI record | Complete |
 
-This report is updated as implementation and experiments produce verifiable
-evidence. Planned values and targets must not be presented as measured results.
+Main limitations: one pair per city (no temporal generalisation test); one
+reviewer, two-date 10 m interpretation and 24 positive windows (10
+held-out), so all intervals are wide; candidate windows are index-enriched,
+so rates are not area-wide; 10 m pixels cannot resolve individual
+buildings. The most valuable next steps are more reviewed positives (ideally
+with date-matched high-resolution references), a third date per city to
+separate crop cycles from construction, and training the pixel model against
+the reviewed context rather than the weak rules.

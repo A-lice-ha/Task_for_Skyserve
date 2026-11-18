@@ -1,5 +1,15 @@
 # Phase 3 — Model architecture
 
+> **Update (2026-11-18).** The models were trained in Phase 4/5 with these
+> changes: the ground U-Net uses widths (16, 32, 64, 128) — 1,175,571
+> parameters — and a **3-class head** (no change, built-up gain, built-up
+> loss); change types are assigned per detection afterwards
+> ([DECISION_LOG D-006](DECISION_LOG.md), D-010). The onboard model is
+> unchanged (279,274 parameters, binary). Trained checkpoints, ONNX FP32 and
+> INT8 artifacts: `outputs/models/ground_ce_final/`,
+> `outputs/models/onboard_final/`. Results: [PHASE_5_EVALUATION.md](PHASE_5_EVALUATION.md).
+> The text below is the original Phase 3 design record.
+
 ## Implemented models
 
 Both models consume aligned before/after image patches in PyTorch NCHW layout

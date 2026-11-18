@@ -1,5 +1,13 @@
 # Phase 1 — Data requirements and audit
 
+> **Update (2026-11-18).** All four products were fully decoded and
+> processed by Sen2Cor and the stacking pipeline without errors (Phase 2).
+> The haze in the 2026-10-22 Delhi scene, not visible in the metadata
+> cloud percentages, became the main acquisition confounder; it is handled
+> by a regional haze rule and the review class `acquisition_artifact`
+> ([DECISION_LOG D-005](DECISION_LOG.md)). Onboard hardware remains an
+> assumption; measured CPU figures are in [PHASE_5_EVALUATION.md](PHASE_5_EVALUATION.md).
+
 Audit of the supplied Sentinel-2 products for man-made change detection.
 Product metadata, tile metadata, and the supplied quality reports were inspected
 locally. Archive checksums and byte sizes are recorded in

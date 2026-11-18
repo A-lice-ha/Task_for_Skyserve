@@ -1,5 +1,18 @@
 # Phase 4 — Training data and supervised training
 
+> **Update (2026-11-18): the blocker below was resolved as follows.**
+> Training uses rule-based **weak labels** (`configs/weak_labels.json`,
+> `src/training/weak_labels.py`); every reported metric uses a separate
+> **blind human review** of all 306 candidate windows
+> (`data/labels/reviews/review_labels.json`). Splits are whole 10 km blocks,
+> 50/25/25 per city with a 2 km training buffer and one zero-shot block per
+> city (`data/manifests/spatial_splits.json`), not 70/15/15. Patch bank,
+> trainer, hyperparameter search and the human-corrected fine-tune are in
+> `src/training/`; decisions D-004 to D-014 in [DECISION_LOG.md](DECISION_LOG.md);
+> results in [PHASE_5_EVALUATION.md](PHASE_5_EVALUATION.md). The QGIS-polygon
+> workflow below was not used for the submitted results and is kept as the
+> original Phase 4 plan.
+
 ## Status and blocker
 
 Phase 4 has started with a windowed annotated-patch dataset reader in

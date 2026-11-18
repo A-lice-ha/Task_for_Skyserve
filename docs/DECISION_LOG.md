@@ -18,6 +18,10 @@ detailed in the phase documents and summarised here so the log is complete.
 | D-010 | 2026-11-18 | CPU training configuration and search |
 | D-011 | 2026-11-18 | Quantization method |
 | D-012 | 2026-11-18 | AI usage record |
+| D-013 | 2026-11-18 | Human-corrected fine-tune (train-block reviews) |
+| D-014 | 2026-11-18 | Block-grouped cross-validation instead of more retraining folds |
+| D-015 | 2026-11-18 | Final model selection and deployed precision |
+| D-016 | 2026-11-18 | Second-stage window context filter for prioritisation |
 
 ---
 
@@ -200,3 +204,76 @@ Ambiguous and invalid pixels are ignored in training (`ignore_index=255`).
   order with model names, and tool calls and results truncated with markers.
   Injected system context and e-mail addresses are removed. Unrelated
   projects' sessions on the same machine are excluded.
+
+## D-013 Human-corrected fine-tune using reviewed train-block windows
+
+- **Finding that triggered it:** on the 306 reviewed windows, change-pixel
+  count ranks windows *worse than chance* for every method (held-out AUROC
+  0.34–0.39). Agricultural and haze windows produce more detected change than
+  real construction; the models reproduce the weak rules' bias.
+- **Decision:** one pre-fixed fine-tune (`configs/training/ground_wce_dice_hf.json`:
+  3 epochs, lr 3e-4, last epoch kept) of `ground_wce_dice_final` on the
+  original patch bank plus 1,095 crops from the 122 human-reviewed windows in
+  **train blocks only** (natural/artefact/no-change windows → all pixels
+  no-change; positive windows keep the weak outline;
+  `src/training/reviewed_patches.py`). No validation/test/zero-shot review
+  was used for training or for choosing this recipe.
+- **Why "last epoch":** weak-validation F1 rewards exactly the agricultural
+  false positives that the correction removes, so it cannot select epochs here.
+- **Result:** median detected change fell on artefact (576 → 266 px) and
+  water (1,188 → 444 px) windows but also on true positives (322 → 206 px);
+  held-out AUROC 0.345 → 0.381, test F1 0.196 → 0.185 — no meaningful gain.
+  Reported as a negative result; 108 reviewed windows are too few to
+  re-teach the spectral distinction between crop cycles and construction.
+
+## D-014 Block-grouped cross-validation of the window decision, not retraining folds
+
+- **Question raised:** with little labelled data, is n-fold (temporal)
+  training/tuning better than one fixed split?
+- **Temporal folds are not possible:** each city has exactly one image pair.
+  The nearest substitute is leave-one-city-out, which confounds city, season,
+  interval and atmosphere.
+- **The scarce resource is human-labelled positives (24 windows; 2 in
+  validation), not training data** (weak labels cover every train block).
+  Retraining per fold (~15–20 min per fold per model on this CPU) would not
+  add any labelled positives.
+- **Decision:** keep the frozen 50/25/25 block split for training, and add
+  5-fold cross-validation **grouped by 10 km block** over all decided held-out
+  windows (val + test + zero-shot; blocks no model trained on). k is selected
+  on four folds and applied to the fifth; out-of-fold predictions give P/R/F1
+  with bootstrap CIs. The val-only protocol (D-009) is kept and reported
+  unchanged; the grouped CV is reported alongside as the more stable estimate.
+
+## D-015 Final model selection and deployed precision
+
+- **Ground:** `ground_ce_final` — highest validation F1 under the
+  pre-registered rule (D-009). The margin over the other runs is one window
+  and is not meaningful; it also had the best gain/loss direction agreement
+  (6/6 held-out true positives).
+- **Onboard:** `onboard_final` (only completed onboard configuration).
+- **Precision:** the ground segment register uses **FP32** because INT8
+  retained only 85 % of small (≤ 10 px) FP32 detections. INT8
+  (`model_int8.onnx`, Conv-only QDQ) is the deployable artifact for
+  constrained hardware: 3.7× smaller and 1.5× faster on one thread with
+  unchanged window-level test F1. For the onboard model INT8 gives no speed-up
+  on this CPU (already small; quantize/dequantize overhead dominates), so FP32
+  ONNX is recommended unless the target accelerator needs integer kernels.
+
+## D-016 Second-stage window context filter, used to prioritise, not to delete
+
+- **Decision:** add a logistic-regression window filter
+  (`src/evaluation/window_filter.py`) on nine features of the change map and
+  the spectral context of changed pixels; fixed settings, fitted only on
+  decided reviewed windows in train blocks, threshold from those windows,
+  evaluated once on held-out windows. Applied tile-wide on a 2.56 km grid
+  (`src/inference/context_score.py`) and attached to every detection
+  (`context_score`, `context_flag`, `priority_score`).
+- **Evidence:** held-out AUROC 0.761 [0.637, 0.863] vs 0.355 for change-pixel
+  count; AP 0.176 vs prevalence 0.082; natural false-alarm rate 0.055 vs
+  0.736. Detections in flagged cells: 47 % in accepted windows vs 3.5 %
+  elsewhere (held-out reviewed windows).
+- **Why prioritise rather than filter:** the train-chosen threshold kept only
+  1 of 10 held-out positive windows; with 10 held-out positives no reliable
+  operating point can be set, so the full register is kept and ordered.
+- **Alternative not taken:** inverting the pixel-count score after seeing
+  held-out AUROC < 0.5 would have used test information.

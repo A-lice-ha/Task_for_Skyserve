@@ -51,10 +51,13 @@ repository root with `.\venv\Scripts\python.exe -m <module>`.
 | 5. Blind review page | `src.evaluation.make_review_set` → open `outputs/review/index.html`, export to `data/labels/reviews/review_labels.json` | human reference labels |
 | 6. Patch bank | `src.training.patches` | `outputs/patches/` |
 | 7. Hyperparameter search | `src.training.hparam_search` | `outputs/experiments/hparam_search.csv`, `outputs/models/<run>/` |
+| 7b. Final runs and human-corrected fine-tune | `src.training.train --config configs/training/<name>.json` (fine-tune patches: `src.training.reviewed_patches`) | `outputs/models/<run>/` |
 | 8. Evaluation | `src.evaluation.evaluate --runs outputs/models/<run> ...` | `outputs/evaluation/` |
+| 8b. Window context filter (fit on train-block reviews) | `src.evaluation.window_filter --run outputs/models/ground_ce_final` | `outputs/evaluation/window_filter.json`, `<run>/window_filter.json` |
 | 9. Quantization | `src.quantization.quantize --runs outputs/models/<run> ...` | `outputs/models/<run>/model_{fp32,int8}.onnx`, `outputs/quantization/` |
 | 10. Change maps | `src.inference.predict_tile --model <run or .onnx>` | `outputs/maps/*_change_{class,prob}.tif` |
-| 11. Detection register | `src.inference.register --tag <map tag>` | `outputs/maps/*_detections.gpkg`, `detection_register_*.csv` |
+| 10b. Context grid | `src.inference.context_score --tag <map tag>` | `outputs/maps/*_context.tif` |
+| 11. Detection register | `src.inference.register --tag <map tag>` | `outputs/maps/*_detections.gpkg`, `detection_register_*.csv`, `priority_detections_*.gpkg` |
 | 12. Evidence gallery | `src.evaluation.evidence --method <method> --tag <map tag>` | `outputs/evidence/` |
 | Historical OSM (optional) | `src.utils.historical_osm --city mumbai` | `data/labels/osm/` |
 | AI record | `src.utils.export_ai_usage` | `AI_USAGE.md`, `docs/ai_usage/` |
@@ -66,7 +69,7 @@ model on a 6 × 6 km Delhi region and builds its detection register in a few
 seconds (pass a `model_int8.onnx` path to use the quantized model instead):
 
 ```powershell
-.\venv\Scripts\python.exe -m src.inference.predict_tile --model outputs\models\<ground run> --city delhi --region 5516 7004 600 600 --tag demo
+.\venv\Scripts\python.exe -m src.inference.predict_tile --model outputs\models\ground_ce_final --city delhi --region 5516 7004 600 600 --tag demo
 .\venv\Scripts\python.exe -m src.inference.register --tag demo --city delhi
 ```
 
