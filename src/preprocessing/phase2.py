@@ -751,6 +751,51 @@ def estimate_registration(
     return affine, metrics
 
 
+WARP_PAD = 8
+
+
+def warp_block(
+    dataset: rasterio.io.DatasetReader,
+    index: int,
+    moving_transform: Affine,
+    window: Window,
+) -> np.ndarray:
+    """Resample one band of `dataset` placed at `moving_transform` onto `window`.
+
+    The source is read as a padded ndarray block. Passing ``rasterio.band()``
+    instead makes rasterio take the dataset's own transform and silently
+    ignore ``src_transform``, which turned the first registration run into a
+    copy of the unregistered image (DECISION_LOG D-019).
+    """
+    # Largest source-pixel offset at the window corners must fit in the padding.
+    back = ~(~dataset.transform * moving_transform)
+    shift = max(abs(source - target)
+                for x in (window.col_off, window.col_off + window.width)
+                for y in (window.row_off, window.row_off + window.height)
+                for source, target in zip(back * (x, y), (x, y)))
+    if shift > WARP_PAD - 1:
+        raise ValueError(f"registration shift {shift:.1f} px exceeds the warp padding")
+    source_window = Window(window.col_off - WARP_PAD, window.row_off - WARP_PAD,
+                           window.width + 2 * WARP_PAD, window.height + 2 * WARP_PAD)
+    nodata = NODATA if dataset.nodata is None else dataset.nodata
+    source = dataset.read(index, window=source_window, boundless=True,
+                          fill_value=nodata).astype(np.float32)
+    block = np.full((int(window.height), int(window.width)), NODATA, dtype=np.float32)
+    reproject(
+        source=source,
+        destination=block,
+        src_transform=moving_transform * Affine.translation(source_window.col_off, source_window.row_off),
+        src_crs=dataset.crs,
+        src_nodata=nodata,
+        dst_transform=dataset.window_transform(window),
+        dst_crs=dataset.crs,
+        dst_nodata=NODATA,
+        resampling=Resampling.bilinear,
+        init_dest_nodata=True,
+    )
+    return block
+
+
 def register_pair(
     before_path: Path,
     after_path: Path,
@@ -811,23 +856,7 @@ def register_pair(
                     init_dest_nodata=True,
                 )
                 for index in range(1, after.count + 1):
-                    block = np.full(
-                        (int(window.height), int(window.width)),
-                        NODATA,
-                        dtype=np.float32,
-                    )
-                    reproject(
-                        source=rasterio.band(after, index),
-                        destination=block,
-                        src_transform=moving_transform,
-                        src_crs=after.crs,
-                        src_nodata=after.nodata,
-                        dst_transform=after.window_transform(window),
-                        dst_crs=after.crs,
-                        dst_nodata=NODATA,
-                        resampling=Resampling.bilinear,
-                        init_dest_nodata=True,
-                    )
+                    block = warp_block(after, index, moving_transform, window)
                     block[valid_block == 0] = NODATA
                     destination.write(block, index, window=window)
                 destination.write_mask(valid_block * 255, window=window)

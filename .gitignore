@@ -78,3 +78,8 @@ __pycache__/
 *.gpkg-shm
 *.gpkg-wal
 *.gpkg-journal
+
+# Independent registration check (small, committed).
+!/outputs/reports/registration_check.json
+!/outputs/reports/registration_check.md
+!/outputs/reports/registration_checkpoints.csv

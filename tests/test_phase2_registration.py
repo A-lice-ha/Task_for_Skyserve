@@ -56,3 +56,26 @@ def test_registration_recovers_translation_from_stable_features(tmp_path):
     assert metrics["ransac_threshold_m"] == 15.0
     assert tuple(transform) == tuple(repeated_transform)
     assert metrics == repeated_metrics
+
+
+def test_warp_block_applies_the_fitted_transform(tmp_path):
+    """Regression (D-019): a rasterio.band source silently ignored src_transform."""
+    import numpy as np
+    import rasterio
+    from affine import Affine
+    from rasterio.windows import Window
+
+    from src.preprocessing.phase2 import warp_block
+
+    transform = Affine(10, 0, 199980, 0, -10, 2200020)
+    x = np.tile(np.arange(64, dtype=np.float32), (64, 1))   # value = column index
+    path = tmp_path / "after.tif"
+    with rasterio.open(path, "w", driver="GTiff", width=64, height=64, count=1, dtype="float32",
+                       crs="EPSG:32643", transform=transform, nodata=-9999) as dst:
+        dst.write(x, 1)
+    with rasterio.open(path) as src:
+        # Content moved 0.5 px to the right: destination column c samples source c - 0.5.
+        moved = warp_block(src, 1, transform * Affine.translation(0.5, 0), Window(8, 8, 32, 32))
+        same = warp_block(src, 1, transform, Window(8, 8, 32, 32))
+    np.testing.assert_allclose(same, x[8:40, 8:40], atol=1e-5)
+    np.testing.assert_allclose(moved, x[8:40, 8:40] - 0.5, atol=1e-4)
