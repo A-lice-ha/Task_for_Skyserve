@@ -154,6 +154,62 @@ is too strict on held-out windows (recall 1/10), so it is used to
 are too few for a reliable operating point.
 
 
+### Leave-one-city-out (D-018)
+
+Temporal folds are impossible with one pair per city. Leave-one-city-out
+(LOCO) is the closest substitute: train in one city, test in the other. It
+is a confounded stress test, because city, season (Dec → May vs Oct → Oct),
+interval (140 vs 1,112 days), haze and land cover all change together.
+
+Protocol (`src/evaluation/loco.py`, `configs/training/ground_ce_loco_train_*.json`):
+
+- Same recipe as `ground_ce_final`, trained and normalised on one city's
+  patches only (Mumbai 953 / Delhi 970 patches, about 6.5 min each).
+- k and the window context filter (fit and threshold) are chosen on **all**
+  decided reviewed windows of the source city. Nothing from the target city
+  is used.
+- Metrics are computed on all decided reviewed windows of the target city.
+- The in-city model is compared on the target city's held-out windows,
+  where it never trained.
+
+The source cities' input distributions differ (mean NIR reflectance 0.169
+in Mumbai vs 0.256 in Delhi). Mumbai has only 4 positive windows (1 held-out)
+and Delhi has 20 (9 held-out).
+
+| Direction | Target windows | Method | P | R | F1 (95 % CI) | Natural false-alarm rate | AUROC (95 % CI) |
+|---|---|---|---:|---:|---|---:|---|
+| Mumbai → Delhi | all Delhi (167, 20 pos.) | LOCO pixel model (k = 8) | 0.121 | 0.95 | 0.215 [0.139, 0.290] | 0.944 | 0.301 [0.208, 0.402] |
+| | | Rule baseline (k = 128) | 0.097 | 0.75 | 0.172 [0.098, 0.244] | 0.944 | 0.206 [0.114, 0.319] |
+| | | LOCO window filter | 0.152 | 0.75 | 0.252 [0.147, 0.353] | 0.573 | 0.602 [0.429, 0.759] |
+| | Delhi held-out (83, 9 pos.) | LOCO pixel model | 0.118 | 1.00 | 0.212 [0.100, 0.323] | 0.917 | 0.406 [0.247, 0.574] |
+| | | In-city `ground_ce_final` | 0.108 | 0.78 | 0.189 [0.063, 0.317] | 0.792 | 0.268 [0.149, 0.392] |
+| | | Rule baseline | 0.090 | 0.78 | 0.161 [0.051, 0.274] | 0.958 | 0.324 [0.156, 0.508] |
+| Delhi → Mumbai | all Mumbai (77, 4 pos.) | LOCO pixel model (k = 1) | 0.087 | 1.00 | 0.160 [0.039, 0.305] | 0.563 | 0.527 [0.383, 0.680] |
+| | | Rule baseline (k = 16) | 0.087 | 1.00 | 0.160 [0.039, 0.305] | 0.563 | 0.545 [0.400, 0.697] |
+| | | LOCO window filter | 0.054 | 0.50 | 0.098 [0, 0.229] | 0.479 | 0.459 [0.312, 0.615] |
+
+Full table, including the Mumbai held-out subset (1 positive):
+`outputs/evaluation/loco.md` and `loco.json`.
+
+What LOCO shows:
+
+- **Pixel models carry no transferable skill, because they had none in
+  either city.** The cross-city F1 equals flagging every window (Delhi
+  prevalence 12 % gives F1 0.21). Change-pixel count again ranks worse than
+  chance (AUROC 0.30).
+- **Training in the target city does not help.** On the same Delhi
+  held-out windows, the in-city model is no better than the Mumbai-trained
+  one (AUROC 0.27 vs 0.41, F1 0.19 vs 0.21; all intervals overlap). This is
+  consistent with both models reproducing the same rules.
+- **The window context filter is city-specific.** Fitted on Mumbai (4
+  positives), it transfers only weakly to Delhi (AUROC 0.60, CI includes
+  0.5). Fitted on Delhi (20 positives), it does not transfer to Mumbai
+  (AUROC 0.46). Its held-out success (AUROC 0.76, 5.4) was measured within
+  cities whose reviews it was fitted on (train blocks of both cities). A new
+  city would need its own reviewed windows before the filter can be trusted.
+- **The Delhi → Mumbai direction is close to uninformative.** Mumbai has 4
+  positive windows in total.
+
 ## 5.5 Quantization (ONNX Runtime static INT8)
 
 Method (D-011, D-017): QDQ format, Conv layers only, UINT8 activations,
@@ -306,7 +362,9 @@ uncertain cases, with the human class and model pixel counts.
 ## 5.7 Limits
 
 - One image pair per city: held-out blocks test geographic, not temporal,
-  generalisation; city, season, interval and haze are confounded.
+  generalisation; city, season, interval and haze are confounded. In
+  leave-one-city-out tests neither the pixel model nor the window context
+  filter transferred between cities (D-018).
 - Human labels are two-date Sentinel-2 interpretations by one reviewer
   (159 of 306 with low confidence), not independent ground truth.
 - 24 positive windows in total (10 held-out): every CI is wide; per-class

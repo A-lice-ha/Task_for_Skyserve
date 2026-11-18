@@ -54,6 +54,7 @@ repository root with `.\venv\Scripts\python.exe -m <module>`.
 | 7b. Final runs and human-corrected fine-tune | `src.training.train --config configs/training/<name>.json` (fine-tune patches: `src.training.reviewed_patches`) | `outputs/models/<run>/` |
 | 8. Evaluation | `src.evaluation.evaluate --runs outputs/models/<run> ...` | `outputs/evaluation/` |
 | 8b. Window context filter (fit on train-block reviews) | `src.evaluation.window_filter --run outputs/models/ground_ce_final` | `outputs/evaluation/window_filter.json`, `<run>/window_filter.json` |
+| 8c. Leave-one-city-out | `src.training.train --config configs/training/ground_ce_loco_train_<city>.json`, then `src.evaluation.loco` | `outputs/evaluation/loco.{json,md}` |
 | 9. Quantization | `src.quantization.quantize --runs outputs/models/<run> ...` | `outputs/models/<run>/model_{fp32,int8}.onnx`, `outputs/quantization/` |
 | 10. Change maps | `src.inference.predict_tile --model <run or .onnx>` | `outputs/maps/*_change_{class,prob}.tif` |
 | 10b. Context grid | `src.inference.context_score --tag <map tag>` | `outputs/maps/*_context.tif` |

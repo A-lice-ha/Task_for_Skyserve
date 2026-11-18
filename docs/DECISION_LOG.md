@@ -23,6 +23,7 @@ detailed in the phase documents and summarised here so the log is complete.
 | D-015 | 2026-11-18 | Final model selection and deployed precision |
 | D-016 | 2026-11-18 | Second-stage window context filter for prioritisation |
 | D-017 | 2026-11-18 | Percentile calibration replaces MinMax for INT8 |
+| D-018 | 2026-11-18 | Leave-one-city-out stress test |
 
 ---
 
@@ -279,6 +280,8 @@ Ambiguous and invalid pixels are ignored in training (`ignore_index=255`).
 - **Why prioritise rather than filter:** the train-chosen threshold kept only
   1 of 10 held-out positive windows; with 10 held-out positives no reliable
   operating point can be set, so the full register is kept and ordered.
+- **Limit found later (D-018):** the filter does not transfer between
+  cities; it needs reviewed windows from each deployment city.
 - **Alternative not taken:** inverting the pixel-count score after seeing
   held-out AUROC < 0.5 would have used test information.
 
@@ -298,3 +301,20 @@ Ambiguous and invalid pixels are ignored in training (`ignore_index=255`).
   more flagged natural windows), which is inside the confidence interval.
 - **Not changed:** the ground register stays FP32 (D-015); INT8 still
   misses about 10 % of the smallest detections.
+
+## D-018 Leave-one-city-out stress test
+
+- **Decision:** add leave-one-city-out runs (`ground_ce_loco_train_<city>`,
+  same recipe as `ground_ce_final`, trained and normalised on one city) as
+  the closest available substitute for temporal folds. Thresholds and the
+  context filter are chosen only on source-city reviews
+  (`src/evaluation/loco.py`).
+- **Result:** Mumbai → Delhi pixel model F1 0.215 [0.139, 0.290], equal to
+  flagging every window; AUROC 0.30. On Delhi held-out windows the in-city
+  model is no better than the Mumbai-trained one. The context filter
+  transfers weakly Mumbai → Delhi (AUROC 0.60, CI includes 0.5) and not at
+  all Delhi → Mumbai (0.46). Delhi → Mumbai has only 4 target positives.
+- **Consequence:** the D-016 filter is city-specific; deploying it in a new
+  city requires reviewed windows from that city. D-014's choice not to
+  retrain per fold is unchanged: retraining moved no metric outside its
+  confidence interval.

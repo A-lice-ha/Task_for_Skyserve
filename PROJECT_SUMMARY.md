@@ -50,7 +50,8 @@ generalisation.
 - **Splits:** whole 10 km blocks, 50/25/25 per city, a 2 km training
   buffer, and one untouched zero-shot block per city (Navi Mumbai/Panvel;
   Noida). With only 2 validation positives, the window threshold is also
-  checked by 5-fold block-grouped cross-validation.
+  checked by 5-fold block-grouped cross-validation, and each city is
+  also held out entirely (leave-one-city-out).
 
 ## 5. Models
 
@@ -86,6 +87,10 @@ generalisation.
   - Held-out AUROC 0.761 (CI 0.637–0.863).
   - Natural false-alarm rate 5.5%, against 74% without it.
   - It ranks the detection register rather than deleting detections.
+- **Leave-one-city-out:** the cross-city pixel model equals flagging every
+  window; training in the target city does not help; the context filter
+  does not transfer between cities (Mumbai → Delhi AUROC 0.60, CI includes
+  0.5), so it needs reviewed windows from each city.
 - **Quantization** (ONNX Runtime static INT8, Conv-only, percentile
   calibration), ground model:
   - Size: 4.50 → 1.21 MiB.
@@ -115,12 +120,12 @@ result uses OSM.** The cache under `data/labels/osm/` allows resumption
 - Product checksums and a frozen split manifest.
 - Versioned configs (`configs/`) and seed 20261118 throughout.
 - Every run's config and history (`outputs/experiments/runs/`).
-- 52 unit tests.
+- 53 unit tests.
 - Committed artifacts: both models (PyTorch, ONNX FP32, ONNX INT8),
   quantization reports, FP32 change-class maps, context grids, the register
   CSV, the priority GeoPackage and the evidence panels. Larger rasters are
   regenerated with the README commands.
-- Decisions D-001 to D-017 are in the decision log.
+- Decisions D-001 to D-018 are in the decision log.
 - AI usage: `AI_USAGE.md` and `docs/ai_usage/` hold the full Copilot and
   Claude Code transcripts.
 
