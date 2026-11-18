@@ -1,6 +1,8 @@
-> **Archived (2026-11-18).** Early implementation plan, committed on
-> 2026-11-17 (commit f053425) before the code was written. Kept as a record
-> of the original plan; it is not current. See the [README](../../README.md),
+> **Archived (2026-11-18).** Early implementation plan drafted with Google
+> Antigravity on 2026-11-13 (session log records Claude Opus 4.6 (Thinking);
+> transcript: [`../ai_usage/2026-11-13_antigravity_d04acb37.md`](../ai_usage/2026-11-13_antigravity_d04acb37.md))
+> and committed on 2026-11-17 (f053425), before the code was written. Kept as
+> a record of the original plan; it is not current. See the [README](../../README.md),
 > [technical report](../TECHNICAL_REPORT.md) and
 > [decision log](../DECISION_LOG.md) for the submitted work.
 

@@ -4,6 +4,10 @@ Sources:
   * GitHub Copilot (VS Code agent host) sessions under ~/.copilot/session-state
     whose recorded working directory is this repository.
   * Claude Code sessions under ~/.claude/projects/<this repository>.
+  * Google Antigravity sessions under ~/.gemini/antigravity/brain whose
+    transcript references this repository (including sub-agent sessions and
+    the Markdown artifacts they produced). The model is taken from the
+    session's logged model setting; sub-agent models are not logged.
 
 User prompts and assistant replies are written in full and in time order.
 Tool calls and tool results are included but truncated (marked as such);
@@ -169,6 +173,78 @@ def export_claude(path: Path) -> tuple[str, dict]:
     return "\n".join(lines), meta
 
 
+# ------------------------------------------------------------ Antigravity ----
+
+ANTIGRAVITY = HOME / ".gemini" / "antigravity" / "brain"
+SENDER = re.compile(r"sender=([0-9a-f-]{36})")
+MODEL_SETTING = re.compile(r"`Model Selection` from .*? to (.+?)\. ")
+
+
+def antigravity_sessions() -> list[Path]:
+    needle = str(ROOT).lower().replace("/", "\\")
+    sessions = []
+    for log in ANTIGRAVITY.glob("*/.system_generated/logs/transcript_full.jsonl"):
+        text = log.read_text(encoding="utf-8", errors="replace").lower().replace("\\\\", "\\")
+        if needle in text:
+            sessions.append(log.parents[2])
+    return sorted(sessions)
+
+
+def export_antigravity(session: Path) -> tuple[str, dict]:
+    steps = []
+    for raw in (session / ".system_generated" / "logs" / "transcript_full.jsonl").open(encoding="utf-8"):
+        try:
+            steps.append(json.loads(raw))
+        except json.JSONDecodeError:
+            continue
+    is_sub = not any(s.get("type") == "USER_INPUT" for s in steps)
+    # The model is logged only as a change of the model setting.
+    model = next((m.group(1) for s in steps
+                  for m in [MODEL_SETTING.search(s.get("content") or "")] if m), None)
+    lines, first, last, replies, parent = [], None, None, 0, None
+    for step in steps:
+        kind, ts, content = step.get("type"), step.get("created_at", ""), step.get("content") or ""
+        if kind == "USER_INPUT":
+            first = first or ts
+            last = ts
+            text = clean(re.sub(r"</?USER_REQUEST>", "", content))
+            lines.append(f"\n---\n\n### User · {ts}\n\n{text}\n")
+        elif kind == "SYSTEM_MESSAGE":
+            match = SENDER.search(content)
+            sender = match.group(1) if match else None
+            body = clean(content.split("content=", 1)[-1].replace("</SYSTEM_MESSAGE>", ""))
+            first = first or ts
+            last = ts
+            if is_sub and sender and sender != session.name:
+                parent = parent or sender
+                lines.append(f"\n---\n\n### Task from parent agent {sender[:8]} · {ts}\n\n{body}\n")
+            else:
+                who = f"sub-agent {sender[:8]}" if sender else "system"
+                lines.append(f"\n**Message from {who} · {ts}**\n\n{body}\n")
+        elif kind == "PLANNER_RESPONSE":
+            last = ts
+            if clean(content):
+                replies += 1
+                lines.append(f"\n**Assistant · {ts}**\n\n{clean(content)}\n")
+            if step.get("tool_calls"):
+                calls = clip(str(step["tool_calls"]), TOOL_ARGS_LIMIT)
+                lines.append(f"\n<details><summary>Tool calls</summary>\n\n{fence(calls)}\n\n</details>\n")
+        elif kind in ("GENERIC", "ERROR_MESSAGE"):
+            label = "Tool result" if kind == "GENERIC" else "Error"
+            body = clip(str(content or step.get("error") or ""), TOOL_RESULT_LIMIT)
+            lines.append(f"<details><summary>{label}</summary>\n\n{fence(body)}\n\n</details>\n")
+    for artifact in sorted(session.glob("*.md")):
+        text = clean(artifact.read_text(encoding="utf-8", errors="replace"))
+        lines.append(f"\n---\n\n### Artifact produced in this session: `{artifact.name}`\n\n{fence(text)}\n")
+    if model:
+        label = f"{model} (from the session's model setting)"
+    else:
+        label = "not recorded in Antigravity's log"
+    meta = {"tool": "Google Antigravity" + (f" sub-agent of {parent[:8]}" if parent else ""),
+            "session": session.name, "start": first, "end": last, "models": {label: replies}}
+    return "\n".join(lines), meta
+
+
 def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--out", type=Path, default=OUT_DIR)
@@ -180,6 +256,7 @@ def main(argv: list[str] | None = None) -> None:
     index = []
     jobs = [("copilot", s, export_copilot) for s in copilot_sessions()]
     jobs += [("claude_code", s, export_claude) for s in claude_sessions()]
+    jobs += [("antigravity", s, export_antigravity) for s in antigravity_sessions()]
     for prefix, source, exporter in jobs:
         body, meta = exporter(source)
         if not meta.get("start"):
@@ -209,6 +286,11 @@ def main(argv: list[str] | None = None) -> None:
         "complete and in time order, with the model that produced each reply.\n"
         f"- Each tool call (file reads/edits, shell commands) with arguments, and its result, "
         f"truncated to {TOOL_ARGS_LIMIT} and {TOOL_RESULT_LIMIT} characters respectively.\n"
+        "- Google Antigravity (used on 2026-11-13 to draft the original implementation plan, "
+        "now in `docs/archive/implementation_plan.md`): the main session's log records the "
+        "model setting Claude Opus 4.6 (Thinking); the user recalled Claude Sonnet. The "
+        "sub-agent's model is not logged. Both sessions and the plan they produced are "
+        "included.\n"
         "- Removed: tool-injected system context (environment/workspace reminders, system "
         "prompts) and e-mail addresses. Assistant private reasoning is not part of the logs' "
         "visible conversation and is not included.\n\n"

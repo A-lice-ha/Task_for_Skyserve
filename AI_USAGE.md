@@ -5,13 +5,16 @@ AI assistants were used throughout this assignment. Every chat session tied to t
 | Start (UTC) | End (UTC) | Tool | Models | Transcript |
 |---|---|---|---|---|
 | 2026-11-13 17:00 | 2026-11-13 17:02 | GitHub Copilot (VS Code agent host) | mai-code-1.1-flash | [2026-11-13_copilot_99f59a09.md](docs/ai_usage/2026-11-13_copilot_99f59a09.md) |
+| 2026-11-13 17:11 | 2026-11-13 17:14 | Google Antigravity | Claude Opus 4.6 (Thinking) (from the session's model setting) | [2026-11-13_antigravity_d04acb37.md](docs/ai_usage/2026-11-13_antigravity_d04acb37.md) |
+| 2026-11-13 17:12 | 2026-11-13 17:14 | Google Antigravity sub-agent of d04acb37 | not recorded in Antigravity's log | [2026-11-13_antigravity_40881020.md](docs/ai_usage/2026-11-13_antigravity_40881020.md) |
 | 2026-11-17 04:19 | 2026-11-18 05:50 | GitHub Copilot (VS Code agent host) | gpt-6-luna, unknown, mai-code-2-flash | [2026-11-17_copilot_0e48a2da.md](docs/ai_usage/2026-11-17_copilot_0e48a2da.md) |
-| 2026-11-18 05:38 | 2026-11-18 12:04 | Claude Code (VS Code extension) | claude-opus-5-5, <synthetic> | [2026-11-18_claude_code_316b0a77.md](docs/ai_usage/2026-11-18_claude_code_316b0a77.md) |
+| 2026-11-18 05:38 | 2026-11-18 12:37 | Claude Code (VS Code extension) | claude-opus-5-5, <synthetic> | [2026-11-18_claude_code_316b0a77.md](docs/ai_usage/2026-11-18_claude_code_316b0a77.md) |
 
 ## What each transcript contains
 
 - Every user prompt (including pasted text attachments) and every assistant reply, complete and in time order, with the model that produced each reply.
 - Each tool call (file reads/edits, shell commands) with arguments, and its result, truncated to 3000 and 2000 characters respectively.
+- Google Antigravity (used on 2026-11-13 to draft the original implementation plan, now in `docs/archive/implementation_plan.md`): the main session's log records the model setting Claude Opus 4.6 (Thinking); the user recalled Claude Sonnet. The sub-agent's model is not logged. Both sessions and the plan they produced are included.
 - Removed: tool-injected system context (environment/workspace reminders, system prompts) and e-mail addresses. Assistant private reasoning is not part of the logs' visible conversation and is not included.
 
 ## Verification
