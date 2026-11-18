@@ -1,0 +1,19 @@
+{
+ "windows_by_class": {
+  "natural_water": 7,
+  "natural_vegetation": 60,
+  "road": 4,
+  "acquisition_artifact": 38,
+  "no_change": 3,
+  "construction": 9,
+  "demolition": 1
+ },
+ "patches": 1095,
+ "pixel_targets": {
+  "0": 9974485,
+  "1": 2853,
+  "2": 1166,
+  "255": 113016
+ },
+ "source": "human reviews of windows in train blocks only"
+}

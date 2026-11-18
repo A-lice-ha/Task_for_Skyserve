@@ -1,0 +1,2458 @@
+{
+ "schema": "change-review-v1",
+ "exported_at": "2026-11-18T10:11:33.457Z",
+ "rule": "Labels use only the two acquisition dates shown; no post-T2 evidence.",
+ "labels": [
+  {
+   "feature_id": "T43RGM_R03516_C08004",
+   "city": "Delhi",
+   "change_class": "natural_vegetation",
+   "reviewed_at": "2026-11-18T06:37:01.938Z",
+   "mask_quality": "correct",
+   "confidence": "medium",
+   "notes": "Predominantly agricultural landscape. Differences in field appearance and vegetation patterns between dates. No clearly identifiable major new construction or demolition. Candidate outlines may include agricultural false positives."
+  },
+  {
+   "feature_id": "T43QBB_R09002_C02514",
+   "city": "Mumbai",
+   "change_class": "natural_water",
+   "reviewed_at": "2026-11-18T06:35:47.303Z",
+   "mask_quality": "wrong",
+   "confidence": "low",
+   "notes": "Seems both like vegetation and sea"
+  },
+  {
+   "feature_id": "T43RGM_R01004_C04260",
+   "city": "Delhi",
+   "change_class": "natural_vegetation",
+   "reviewed_at": "2026-11-18T06:37:13.982Z",
+   "mask_quality": "correct",
+   "confidence": "medium",
+   "notes": "Predominantly agricultural landscape. Differences in field appearance and vegetation patterns between dates."
+  },
+  {
+   "feature_id": "T43QBB_R06002_C01514",
+   "city": "Mumbai",
+   "change_class": "uncertain",
+   "reviewed_at": "2026-11-18T06:37:54.920Z",
+   "mask_quality": "none",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43RGM_R05516_C07004",
+   "city": "Delhi",
+   "change_class": "acquisition_artifact",
+   "reviewed_at": "2026-11-18T06:38:26.537Z",
+   "mask_quality": "partial",
+   "confidence": "high"
+  },
+  {
+   "feature_id": "T43QBB_R10002_C07002",
+   "city": "Mumbai",
+   "change_class": "construction",
+   "reviewed_at": "2026-11-18T06:39:42.057Z",
+   "mask_quality": "partial",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43RGM_R00004_C03260",
+   "city": "Delhi",
+   "change_class": "natural_vegetation",
+   "reviewed_at": "2026-11-18T06:40:04.870Z",
+   "mask_quality": "partial",
+   "confidence": "medium"
+  },
+  {
+   "feature_id": "T43QBB_R10258_C08514",
+   "city": "Mumbai",
+   "change_class": "road",
+   "reviewed_at": "2026-11-18T06:41:01.058Z",
+   "mask_quality": "partial",
+   "confidence": "high"
+  },
+  {
+   "feature_id": "T43QBB_R03514_C06258",
+   "city": "Mumbai",
+   "change_class": "natural_water",
+   "reviewed_at": "2026-11-18T06:41:35.914Z",
+   "mask_quality": "partial",
+   "confidence": "medium"
+  },
+  {
+   "feature_id": "T43QBB_R07514_C05258",
+   "city": "Mumbai",
+   "change_class": "acquisition_artifact",
+   "reviewed_at": "2026-11-18T06:42:08.568Z",
+   "mask_quality": "none",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43RGM_R07004_C06516",
+   "city": "Delhi",
+   "change_class": "natural_vegetation",
+   "reviewed_at": "2026-11-18T06:42:37.254Z",
+   "mask_quality": "partial",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43QBB_R06514_C04002",
+   "city": "Mumbai",
+   "change_class": "acquisition_artifact",
+   "reviewed_at": "2026-11-18T06:42:54.232Z",
+   "mask_quality": "none",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43QBB_R06002_C04514",
+   "city": "Mumbai",
+   "change_class": "uncertain",
+   "reviewed_at": "2026-11-18T06:49:16.672Z",
+   "mask_quality": "none",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43QBB_R08514_C07514",
+   "city": "Mumbai",
+   "change_class": "no_change",
+   "reviewed_at": "2026-11-18T06:50:07.485Z",
+   "mask_quality": "wrong",
+   "confidence": "high"
+  },
+  {
+   "feature_id": "T43RGM_R09516_C08004",
+   "city": "Delhi",
+   "change_class": "natural_vegetation",
+   "reviewed_at": "2026-11-18T06:50:34.647Z",
+   "mask_quality": "wrong",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43QBB_R02514_C04002",
+   "city": "Mumbai",
+   "change_class": "uncertain",
+   "reviewed_at": "2026-11-18T06:50:44.986Z",
+   "mask_quality": "none",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43QBB_R09514_C09258",
+   "city": "Mumbai",
+   "change_class": "no_change",
+   "reviewed_at": "2026-11-18T06:51:30.926Z",
+   "mask_quality": "wrong",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43QBB_R04002_C08258",
+   "city": "Mumbai",
+   "change_class": "natural_vegetation",
+   "reviewed_at": "2026-11-18T06:52:01.479Z",
+   "mask_quality": "partial",
+   "confidence": "high"
+  },
+  {
+   "feature_id": "T43RGM_R01260_C00004",
+   "city": "Delhi",
+   "change_class": "natural_vegetation",
+   "reviewed_at": "2026-11-18T06:52:23.722Z",
+   "mask_quality": "partial",
+   "confidence": "medium"
+  },
+  {
+   "feature_id": "T43RGM_R05004_C04516",
+   "city": "Delhi",
+   "change_class": "natural_vegetation",
+   "reviewed_at": "2026-11-18T06:52:56.714Z",
+   "mask_quality": "partial",
+   "confidence": "medium"
+  },
+  {
+   "feature_id": "T43RGM_R02260_C01516",
+   "city": "Delhi",
+   "change_class": "no_change",
+   "reviewed_at": "2026-11-18T06:53:44.933Z",
+   "mask_quality": "wrong",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43QBB_R06258_C03002",
+   "city": "Mumbai",
+   "change_class": "acquisition_artifact",
+   "reviewed_at": "2026-11-18T06:53:55.764Z",
+   "mask_quality": "none",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43RGM_R09516_C01516",
+   "city": "Delhi",
+   "change_class": "natural_vegetation",
+   "reviewed_at": "2026-11-18T06:54:23.525Z",
+   "mask_quality": "partial",
+   "confidence": "medium"
+  },
+  {
+   "feature_id": "T43RGM_R09260_C04516",
+   "city": "Delhi",
+   "change_class": "natural_vegetation",
+   "reviewed_at": "2026-11-18T06:56:02.091Z",
+   "confidence": "low",
+   "mask_quality": "correct"
+  },
+  {
+   "feature_id": "T43RGM_R03516_C10004",
+   "city": "Delhi",
+   "change_class": "natural_vegetation",
+   "reviewed_at": "2026-11-18T06:56:20.065Z",
+   "mask_quality": "partial",
+   "confidence": "medium"
+  },
+  {
+   "feature_id": "T43QBB_R10002_C06002",
+   "city": "Mumbai",
+   "change_class": "acquisition_artifact",
+   "reviewed_at": "2026-11-18T06:56:32.321Z",
+   "mask_quality": "none",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43RGM_R00516_C00260",
+   "city": "Delhi",
+   "change_class": "no_change",
+   "reviewed_at": "2026-11-18T06:57:03.162Z",
+   "mask_quality": "partial",
+   "confidence": "medium"
+  },
+  {
+   "feature_id": "T43QBB_R10514_C01514",
+   "city": "Mumbai",
+   "change_class": "acquisition_artifact",
+   "reviewed_at": "2026-11-18T07:57:58.278Z",
+   "mask_quality": "none",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43QBB_R03258_C09002",
+   "city": "Mumbai",
+   "change_class": "natural_vegetation",
+   "reviewed_at": "2026-11-18T07:58:19.826Z",
+   "mask_quality": "partial",
+   "confidence": "medium"
+  },
+  {
+   "feature_id": "T43RGM_R05260_C02004",
+   "city": "Delhi",
+   "change_class": "road",
+   "reviewed_at": "2026-11-18T07:58:37.766Z",
+   "mask_quality": "partial",
+   "confidence": "medium"
+  },
+  {
+   "feature_id": "T43QBB_R01002_C03002",
+   "city": "Mumbai",
+   "change_class": "acquisition_artifact",
+   "reviewed_at": "2026-11-18T07:58:52.114Z",
+   "mask_quality": "none",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43QBB_R04002_C02258",
+   "city": "Mumbai",
+   "change_class": "acquisition_artifact",
+   "reviewed_at": "2026-11-18T07:58:59.810Z",
+   "mask_quality": "none",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43RGM_R10516_C06004",
+   "city": "Delhi",
+   "change_class": "no_change",
+   "reviewed_at": "2026-11-18T07:59:52.702Z",
+   "mask_quality": "wrong",
+   "confidence": "medium"
+  },
+  {
+   "feature_id": "T43QBB_R07002_C03514",
+   "city": "Mumbai",
+   "change_class": "acquisition_artifact",
+   "reviewed_at": "2026-11-18T08:00:02.346Z",
+   "mask_quality": "none",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43QBB_R08514_C10514",
+   "city": "Mumbai",
+   "change_class": "natural_vegetation",
+   "reviewed_at": "2026-11-18T08:00:29.781Z",
+   "mask_quality": "wrong",
+   "confidence": "medium"
+  },
+  {
+   "feature_id": "T43QBB_R08514_C05002",
+   "city": "Mumbai",
+   "change_class": "acquisition_artifact",
+   "reviewed_at": "2026-11-18T08:00:35.641Z",
+   "mask_quality": "none",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43RGM_R05516_C09004",
+   "city": "Delhi",
+   "change_class": "natural_vegetation",
+   "reviewed_at": "2026-11-18T08:01:10.195Z",
+   "mask_quality": "partial",
+   "confidence": "medium"
+  },
+  {
+   "feature_id": "T43QBB_R09514_C01514",
+   "city": "Mumbai",
+   "change_class": "acquisition_artifact",
+   "reviewed_at": "2026-11-18T08:01:14.446Z",
+   "mask_quality": "none",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43QBB_R05002_C10002",
+   "city": "Mumbai",
+   "change_class": "natural_vegetation",
+   "reviewed_at": "2026-11-18T08:01:29.878Z",
+   "mask_quality": "partial",
+   "confidence": "medium"
+  },
+  {
+   "feature_id": "T43QBB_R02258_C07258",
+   "city": "Mumbai",
+   "change_class": "natural_vegetation",
+   "reviewed_at": "2026-11-18T08:01:47.185Z",
+   "mask_quality": "partial",
+   "confidence": "medium"
+  },
+  {
+   "feature_id": "T43QBB_R01514_C01258",
+   "city": "Mumbai",
+   "change_class": "acquisition_artifact",
+   "reviewed_at": "2026-11-18T08:01:52.302Z",
+   "mask_quality": "none",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43QBB_R10002_C02514",
+   "city": "Mumbai",
+   "change_class": "acquisition_artifact",
+   "reviewed_at": "2026-11-18T08:01:54.500Z",
+   "mask_quality": "none",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43RGM_R01516_C02260",
+   "city": "Delhi",
+   "change_class": "acquisition_artifact",
+   "reviewed_at": "2026-11-18T08:02:32.213Z",
+   "mask_quality": "wrong",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43QBB_R00258_C08514",
+   "city": "Mumbai",
+   "change_class": "natural_vegetation",
+   "reviewed_at": "2026-11-18T08:02:50.202Z",
+   "mask_quality": "correct",
+   "confidence": "medium"
+  },
+  {
+   "feature_id": "T43RGM_R10260_C09260",
+   "city": "Delhi",
+   "change_class": "natural_vegetation",
+   "reviewed_at": "2026-11-18T08:04:25.988Z",
+   "mask_quality": "partial",
+   "confidence": "medium"
+  },
+  {
+   "feature_id": "T43RGM_R05004_C01516",
+   "city": "Delhi",
+   "change_class": "natural_vegetation",
+   "reviewed_at": "2026-11-18T08:04:44.126Z",
+   "mask_quality": "partial",
+   "confidence": "medium"
+  },
+  {
+   "feature_id": "T43RGM_R00004_C09260",
+   "city": "Delhi",
+   "change_class": "natural_vegetation",
+   "reviewed_at": "2026-11-18T08:05:17.695Z",
+   "mask_quality": "partial",
+   "confidence": "medium"
+  },
+  {
+   "feature_id": "T43QBB_R03514_C08514",
+   "city": "Mumbai",
+   "change_class": "natural_vegetation",
+   "reviewed_at": "2026-11-18T08:05:31.822Z",
+   "mask_quality": "partial",
+   "confidence": "medium"
+  },
+  {
+   "feature_id": "T43RGM_R07516_C09516",
+   "city": "Delhi",
+   "change_class": "acquisition_artifact",
+   "reviewed_at": "2026-11-18T08:05:45.584Z",
+   "mask_quality": "partial",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43RGM_R04516_C09260",
+   "city": "Delhi",
+   "change_class": "natural_vegetation",
+   "reviewed_at": "2026-11-18T08:06:22.276Z",
+   "mask_quality": "partial",
+   "confidence": "medium"
+  },
+  {
+   "feature_id": "T43QBB_R04002_C03002",
+   "city": "Mumbai",
+   "change_class": "acquisition_artifact",
+   "reviewed_at": "2026-11-18T08:06:26.018Z",
+   "mask_quality": "none",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43QBB_R06002_C05258",
+   "city": "Mumbai",
+   "change_class": "acquisition_artifact",
+   "reviewed_at": "2026-11-18T08:06:29.923Z",
+   "mask_quality": "none",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43QBB_R07258_C01514",
+   "city": "Mumbai",
+   "change_class": "acquisition_artifact",
+   "reviewed_at": "2026-11-18T08:06:31.317Z",
+   "mask_quality": "none",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43RGM_R07260_C03004",
+   "city": "Delhi",
+   "change_class": "natural_vegetation",
+   "reviewed_at": "2026-11-18T08:09:17.566Z",
+   "mask_quality": "partial",
+   "confidence": "medium"
+  },
+  {
+   "feature_id": "T43RGM_R06004_C06004",
+   "city": "Delhi",
+   "change_class": "acquisition_artifact",
+   "reviewed_at": "2026-11-18T08:09:30.851Z",
+   "mask_quality": "partial",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43RGM_R03516_C02260",
+   "city": "Delhi",
+   "change_class": "natural_water",
+   "reviewed_at": "2026-11-18T08:09:52.053Z",
+   "mask_quality": "partial",
+   "confidence": "medium"
+  },
+  {
+   "feature_id": "T43QBB_R01002_C02002",
+   "city": "Mumbai",
+   "change_class": "acquisition_artifact",
+   "reviewed_at": "2026-11-18T08:09:56.738Z",
+   "mask_quality": "none",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43RGM_R06516_C03516",
+   "city": "Delhi",
+   "change_class": "construction",
+   "reviewed_at": "2026-11-18T08:11:15.813Z",
+   "mask_quality": "partial",
+   "confidence": "medium"
+  },
+  {
+   "feature_id": "T43RGM_R02004_C02516",
+   "city": "Delhi",
+   "change_class": "uncertain",
+   "reviewed_at": "2026-11-18T08:11:47.436Z",
+   "mask_quality": "partial",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43RGM_R03516_C03260",
+   "city": "Delhi",
+   "change_class": "construction",
+   "reviewed_at": "2026-11-18T08:12:08.641Z",
+   "mask_quality": "partial",
+   "confidence": "medium"
+  },
+  {
+   "feature_id": "T43QBB_R03514_C04002",
+   "city": "Mumbai",
+   "change_class": "acquisition_artifact",
+   "reviewed_at": "2026-11-18T08:12:11.276Z",
+   "mask_quality": "none",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43QBB_R05514_C09258",
+   "city": "Mumbai",
+   "change_class": "natural_vegetation",
+   "reviewed_at": "2026-11-18T08:12:18.962Z",
+   "mask_quality": "partial",
+   "confidence": "medium"
+  },
+  {
+   "feature_id": "T43RGM_R07004_C01004",
+   "city": "Delhi",
+   "change_class": "no_change",
+   "reviewed_at": "2026-11-18T08:13:37.822Z",
+   "mask_quality": "partial",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43RGM_R02004_C02260",
+   "city": "Delhi",
+   "change_class": "road",
+   "reviewed_at": "2026-11-18T08:13:54.756Z",
+   "mask_quality": "partial",
+   "confidence": "medium"
+  },
+  {
+   "feature_id": "T43RGM_R07004_C10004",
+   "city": "Delhi",
+   "change_class": "natural_vegetation",
+   "reviewed_at": "2026-11-18T08:14:04.500Z",
+   "mask_quality": "partial",
+   "confidence": "medium"
+  },
+  {
+   "feature_id": "T43RGM_R03004_C04004",
+   "city": "Delhi",
+   "change_class": "acquisition_artifact",
+   "reviewed_at": "2026-11-18T08:14:27.670Z",
+   "mask_quality": "partial",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43RGM_R02004_C00004",
+   "city": "Delhi",
+   "change_class": "natural_vegetation",
+   "reviewed_at": "2026-11-18T08:14:52.360Z",
+   "mask_quality": "partial",
+   "confidence": "medium"
+  },
+  {
+   "feature_id": "T43QBB_R06002_C09002",
+   "city": "Mumbai",
+   "change_class": "acquisition_artifact",
+   "reviewed_at": "2026-11-18T08:16:22.685Z",
+   "confidence": "low",
+   "mask_quality": "partial"
+  },
+  {
+   "feature_id": "T43QBB_R02514_C08258",
+   "city": "Mumbai",
+   "change_class": "natural_vegetation",
+   "reviewed_at": "2026-11-18T08:16:31.566Z",
+   "mask_quality": "partial",
+   "confidence": "medium"
+  },
+  {
+   "feature_id": "T43QBB_R05258_C04258",
+   "city": "Mumbai",
+   "change_class": "acquisition_artifact",
+   "reviewed_at": "2026-11-18T08:16:42.424Z",
+   "mask_quality": "none",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43QBB_R00258_C05514",
+   "city": "Mumbai",
+   "change_class": "uncertain",
+   "reviewed_at": "2026-11-18T08:17:20.247Z",
+   "mask_quality": "wrong",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43QBB_R00002_C01514",
+   "city": "Mumbai",
+   "change_class": "acquisition_artifact",
+   "reviewed_at": "2026-11-18T08:17:36.085Z",
+   "mask_quality": "none",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43RGM_R00004_C04516",
+   "city": "Delhi",
+   "change_class": "natural_vegetation",
+   "reviewed_at": "2026-11-18T08:17:53.937Z",
+   "mask_quality": "partial",
+   "confidence": "medium"
+  },
+  {
+   "feature_id": "T43QBB_R02514_C00514",
+   "city": "Mumbai",
+   "change_class": "acquisition_artifact",
+   "reviewed_at": "2026-11-18T08:18:02.223Z",
+   "mask_quality": "none",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43RGM_R01004_C00004",
+   "city": "Delhi",
+   "change_class": "natural_vegetation",
+   "reviewed_at": "2026-11-18T08:18:25.225Z",
+   "mask_quality": "partial",
+   "confidence": "medium"
+  },
+  {
+   "feature_id": "T43RGM_R09516_C09004",
+   "city": "Delhi",
+   "change_class": "acquisition_artifact",
+   "reviewed_at": "2026-11-18T08:18:40.243Z",
+   "mask_quality": "partial",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43RGM_R05260_C00260",
+   "city": "Delhi",
+   "change_class": "construction",
+   "reviewed_at": "2026-11-18T08:19:12.115Z",
+   "mask_quality": "partial",
+   "confidence": "medium"
+  },
+  {
+   "feature_id": "T43RGM_R03260_C03260",
+   "city": "Delhi",
+   "change_class": "construction",
+   "reviewed_at": "2026-11-18T08:20:11.646Z",
+   "mask_quality": "partial",
+   "confidence": "medium"
+  },
+  {
+   "feature_id": "T43RGM_R05516_C05516",
+   "city": "Delhi",
+   "change_class": "acquisition_artifact",
+   "reviewed_at": "2026-11-18T08:20:30.537Z",
+   "mask_quality": "partial",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43QBB_R06514_C00002",
+   "city": "Mumbai",
+   "change_class": "acquisition_artifact",
+   "reviewed_at": "2026-11-18T08:20:34.831Z",
+   "mask_quality": "none",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43RGM_R00260_C06260",
+   "city": "Delhi",
+   "change_class": "road",
+   "reviewed_at": "2026-11-18T08:20:56.814Z",
+   "mask_quality": "partial",
+   "confidence": "medium"
+  },
+  {
+   "feature_id": "T43RGM_R05260_C01004",
+   "city": "Delhi",
+   "change_class": "construction",
+   "reviewed_at": "2026-11-18T08:21:14.983Z",
+   "mask_quality": "partial",
+   "confidence": "medium"
+  },
+  {
+   "feature_id": "T43RGM_R09516_C02004",
+   "city": "Delhi",
+   "change_class": "acquisition_artifact",
+   "reviewed_at": "2026-11-18T08:21:33.992Z",
+   "confidence": "low",
+   "mask_quality": "partial"
+  },
+  {
+   "feature_id": "T43RGM_R00260_C05004",
+   "city": "Delhi",
+   "change_class": "construction",
+   "reviewed_at": "2026-11-18T08:22:15.220Z",
+   "mask_quality": "partial",
+   "confidence": "medium"
+  },
+  {
+   "feature_id": "T43RGM_R01004_C03004",
+   "city": "Delhi",
+   "change_class": "natural_vegetation",
+   "reviewed_at": "2026-11-18T08:22:27.970Z",
+   "mask_quality": "partial",
+   "confidence": "medium"
+  },
+  {
+   "feature_id": "T43QBB_R08258_C00258",
+   "city": "Mumbai",
+   "change_class": "acquisition_artifact",
+   "reviewed_at": "2026-11-18T08:22:31.795Z",
+   "mask_quality": "none",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43RGM_R09260_C03516",
+   "city": "Delhi",
+   "change_class": "acquisition_artifact",
+   "reviewed_at": "2026-11-18T08:22:47.382Z",
+   "confidence": "low",
+   "mask_quality": "partial"
+  },
+  {
+   "feature_id": "T43RGM_R02516_C04004",
+   "city": "Delhi",
+   "change_class": "construction",
+   "reviewed_at": "2026-11-18T08:23:04.779Z",
+   "mask_quality": "partial",
+   "confidence": "medium"
+  },
+  {
+   "feature_id": "T43RGM_R08260_C00004",
+   "city": "Delhi",
+   "change_class": "acquisition_artifact",
+   "reviewed_at": "2026-11-18T08:23:19.963Z",
+   "confidence": "low",
+   "mask_quality": "partial"
+  },
+  {
+   "feature_id": "T43RGM_R01004_C04004",
+   "city": "Delhi",
+   "change_class": "natural_vegetation",
+   "reviewed_at": "2026-11-18T08:23:42.037Z",
+   "mask_quality": "partial",
+   "confidence": "medium"
+  },
+  {
+   "feature_id": "T43RGM_R07516_C05004",
+   "city": "Delhi",
+   "change_class": "acquisition_artifact",
+   "reviewed_at": "2026-11-18T08:23:49.214Z",
+   "mask_quality": "partial",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43QBB_R00514_C06514",
+   "city": "Mumbai",
+   "change_class": "construction",
+   "reviewed_at": "2026-11-18T08:24:12.225Z",
+   "mask_quality": "partial",
+   "confidence": "medium"
+  },
+  {
+   "feature_id": "T43RGM_R08516_C01516",
+   "city": "Delhi",
+   "change_class": "acquisition_artifact",
+   "reviewed_at": "2026-11-18T08:24:21.773Z",
+   "mask_quality": "partial",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43RGM_R04260_C01004",
+   "city": "Delhi",
+   "change_class": "natural_vegetation",
+   "reviewed_at": "2026-11-18T08:24:48.608Z",
+   "mask_quality": "partial",
+   "confidence": "medium"
+  },
+  {
+   "feature_id": "T43QBB_R10514_C10514",
+   "city": "Mumbai",
+   "change_class": "natural_vegetation",
+   "reviewed_at": "2026-11-18T08:24:55.951Z",
+   "mask_quality": "partial",
+   "confidence": "medium"
+  },
+  {
+   "feature_id": "T43QBB_R10002_C03258",
+   "city": "Mumbai",
+   "change_class": "acquisition_artifact",
+   "reviewed_at": "2026-11-18T08:25:04.844Z",
+   "mask_quality": "none",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43RGM_R01516_C01260",
+   "city": "Delhi",
+   "change_class": "acquisition_artifact",
+   "reviewed_at": "2026-11-18T08:25:23.512Z",
+   "confidence": "low",
+   "mask_quality": "partial"
+  },
+  {
+   "feature_id": "T43RGM_R03260_C07260",
+   "city": "Delhi",
+   "change_class": "natural_vegetation",
+   "reviewed_at": "2026-11-18T08:26:23.649Z",
+   "mask_quality": "partial",
+   "confidence": "medium"
+  },
+  {
+   "feature_id": "T43QBB_R09258_C00258",
+   "city": "Mumbai",
+   "change_class": "acquisition_artifact",
+   "reviewed_at": "2026-11-18T08:26:26.962Z",
+   "mask_quality": "none",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43QBB_R08258_C04002",
+   "city": "Mumbai",
+   "change_class": "acquisition_artifact",
+   "reviewed_at": "2026-11-18T08:26:30.532Z",
+   "mask_quality": "none",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43RGM_R06516_C02004",
+   "city": "Delhi",
+   "change_class": "acquisition_artifact",
+   "reviewed_at": "2026-11-18T08:26:54.864Z",
+   "mask_quality": "partial",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43RGM_R04260_C02260",
+   "city": "Delhi",
+   "change_class": "construction",
+   "reviewed_at": "2026-11-18T08:27:26.421Z",
+   "mask_quality": "partial",
+   "confidence": "high"
+  },
+  {
+   "feature_id": "T43QBB_R03002_C01514",
+   "city": "Mumbai",
+   "change_class": "acquisition_artifact",
+   "reviewed_at": "2026-11-18T08:27:30.987Z",
+   "mask_quality": "none",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43QBB_R05002_C08258",
+   "city": "Mumbai",
+   "change_class": "natural_vegetation",
+   "reviewed_at": "2026-11-18T08:27:36.555Z",
+   "mask_quality": "partial",
+   "confidence": "medium"
+  },
+  {
+   "feature_id": "T43QBB_R00002_C04258",
+   "city": "Mumbai",
+   "change_class": "acquisition_artifact",
+   "reviewed_at": "2026-11-18T08:27:41.183Z",
+   "mask_quality": "none",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43RGM_R04260_C07004",
+   "city": "Delhi",
+   "change_class": "natural_vegetation",
+   "reviewed_at": "2026-11-18T08:28:12.905Z",
+   "confidence": "medium",
+   "mask_quality": "partial"
+  },
+  {
+   "feature_id": "T43RGM_R01260_C01516",
+   "city": "Delhi",
+   "change_class": "natural_vegetation",
+   "reviewed_at": "2026-11-18T08:28:29.601Z",
+   "mask_quality": "partial",
+   "confidence": "medium"
+  },
+  {
+   "feature_id": "T43QBB_R05002_C01002",
+   "city": "Mumbai",
+   "change_class": "acquisition_artifact",
+   "reviewed_at": "2026-11-18T08:28:33.559Z",
+   "mask_quality": "none",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43RGM_R05260_C04516",
+   "city": "Delhi",
+   "change_class": "construction",
+   "reviewed_at": "2026-11-18T08:28:55.606Z",
+   "mask_quality": "partial",
+   "confidence": "medium"
+  },
+  {
+   "feature_id": "T43QBB_R01258_C09002",
+   "city": "Mumbai",
+   "change_class": "natural_vegetation",
+   "reviewed_at": "2026-11-18T08:29:06.542Z",
+   "mask_quality": "partial",
+   "confidence": "medium"
+  },
+  {
+   "feature_id": "T43QBB_R08002_C02514",
+   "city": "Mumbai",
+   "change_class": "acquisition_artifact",
+   "reviewed_at": "2026-11-18T08:29:09.019Z",
+   "mask_quality": "none",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43RGM_R01004_C02004",
+   "city": "Delhi",
+   "change_class": "natural_vegetation",
+   "reviewed_at": "2026-11-18T08:31:15.610Z",
+   "mask_quality": "partial",
+   "confidence": "medium"
+  },
+  {
+   "feature_id": "T43RGM_R05004_C05260",
+   "city": "Delhi",
+   "change_class": "uncertain",
+   "reviewed_at": "2026-11-18T08:31:48.217Z",
+   "mask_quality": "partial",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43RGM_R03516_C06004",
+   "city": "Delhi",
+   "change_class": "acquisition_artifact",
+   "reviewed_at": "2026-11-18T08:32:02.816Z",
+   "mask_quality": "partial",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43RGM_R02260_C06516",
+   "city": "Delhi",
+   "change_class": "natural_vegetation",
+   "reviewed_at": "2026-11-18T08:32:15.054Z",
+   "mask_quality": "partial",
+   "confidence": "medium"
+  },
+  {
+   "feature_id": "T43RGM_R07004_C01516",
+   "city": "Delhi",
+   "change_class": "natural_vegetation",
+   "reviewed_at": "2026-11-18T08:32:25.346Z",
+   "mask_quality": "partial",
+   "confidence": "medium"
+  },
+  {
+   "feature_id": "T43QBB_R00002_C07002",
+   "city": "Mumbai",
+   "change_class": "natural_vegetation",
+   "reviewed_at": "2026-11-18T08:32:35.855Z",
+   "mask_quality": "partial",
+   "confidence": "medium"
+  },
+  {
+   "feature_id": "T43RGM_R00004_C07004",
+   "city": "Delhi",
+   "change_class": "natural_vegetation",
+   "reviewed_at": "2026-11-18T08:35:13.176Z",
+   "mask_quality": "partial",
+   "confidence": "medium"
+  },
+  {
+   "feature_id": "T43QBB_R02514_C09258",
+   "city": "Mumbai",
+   "change_class": "natural_vegetation",
+   "reviewed_at": "2026-11-18T08:35:19.928Z",
+   "mask_quality": "partial",
+   "confidence": "medium"
+  },
+  {
+   "feature_id": "T43RGM_R10516_C02004",
+   "city": "Delhi",
+   "change_class": "acquisition_artifact",
+   "reviewed_at": "2026-11-18T08:35:30.304Z",
+   "mask_quality": "partial",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43QBB_R04002_C04514",
+   "city": "Mumbai",
+   "change_class": "acquisition_artifact",
+   "reviewed_at": "2026-11-18T08:35:40.470Z",
+   "mask_quality": "none",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43QBB_R09002_C08514",
+   "city": "Mumbai",
+   "change_class": "uncertain",
+   "reviewed_at": "2026-11-18T08:36:01.878Z",
+   "mask_quality": "wrong",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43RGM_R06260_C09260",
+   "city": "Delhi",
+   "change_class": "acquisition_artifact",
+   "reviewed_at": "2026-11-18T08:36:07.473Z",
+   "mask_quality": "partial",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43RGM_R10516_C00004",
+   "city": "Delhi",
+   "change_class": "acquisition_artifact",
+   "reviewed_at": "2026-11-18T08:36:13.186Z",
+   "mask_quality": "partial",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43RGM_R08004_C02004",
+   "city": "Delhi",
+   "change_class": "acquisition_artifact",
+   "reviewed_at": "2026-11-18T08:36:26.679Z",
+   "mask_quality": "partial",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43QBB_R07002_C02514",
+   "city": "Mumbai",
+   "change_class": "uncertain",
+   "reviewed_at": "2026-11-18T08:36:36.267Z",
+   "mask_quality": "none",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43RGM_R00516_C05004",
+   "city": "Delhi",
+   "change_class": "construction",
+   "reviewed_at": "2026-11-18T08:37:01.405Z",
+   "mask_quality": "partial",
+   "confidence": "medium"
+  },
+  {
+   "feature_id": "T43RGM_R03516_C04516",
+   "city": "Delhi",
+   "change_class": "acquisition_artifact",
+   "reviewed_at": "2026-11-18T08:37:10.410Z",
+   "mask_quality": "partial",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43RGM_R04516_C00260",
+   "city": "Delhi",
+   "change_class": "natural_vegetation",
+   "reviewed_at": "2026-11-18T08:37:21.032Z",
+   "mask_quality": "partial",
+   "confidence": "medium"
+  },
+  {
+   "feature_id": "T43QBB_R03258_C04514",
+   "city": "Mumbai",
+   "change_class": "uncertain",
+   "reviewed_at": "2026-11-18T08:37:24.482Z",
+   "mask_quality": "none",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43RGM_R03004_C02260",
+   "city": "Delhi",
+   "change_class": "road",
+   "reviewed_at": "2026-11-18T08:37:36.586Z",
+   "mask_quality": "partial",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43QBB_R08514_C02002",
+   "city": "Mumbai",
+   "change_class": "uncertain",
+   "reviewed_at": "2026-11-18T08:37:38.856Z",
+   "mask_quality": "none",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43QBB_R05002_C04514",
+   "city": "Mumbai",
+   "change_class": "uncertain",
+   "reviewed_at": "2026-11-18T08:37:40.804Z",
+   "mask_quality": "none",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43QBB_R01002_C06514",
+   "city": "Mumbai",
+   "change_class": "road",
+   "reviewed_at": "2026-11-18T08:38:00.822Z",
+   "mask_quality": "partial",
+   "confidence": "medium"
+  },
+  {
+   "feature_id": "T43RGM_R06516_C07004",
+   "city": "Delhi",
+   "change_class": "acquisition_artifact",
+   "reviewed_at": "2026-11-18T08:38:08.850Z",
+   "mask_quality": "partial",
+   "confidence": "medium"
+  },
+  {
+   "feature_id": "T43RGM_R05004_C03260",
+   "city": "Delhi",
+   "change_class": "acquisition_artifact",
+   "reviewed_at": "2026-11-18T08:38:14.426Z",
+   "mask_quality": "partial",
+   "confidence": "medium"
+  },
+  {
+   "feature_id": "T43QBB_R01514_C04002",
+   "city": "Mumbai",
+   "change_class": "uncertain",
+   "reviewed_at": "2026-11-18T08:38:18.465Z",
+   "mask_quality": "none",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43QBB_R06002_C10258",
+   "city": "Mumbai",
+   "change_class": "natural_vegetation",
+   "reviewed_at": "2026-11-18T08:38:30.917Z",
+   "mask_quality": "partial",
+   "confidence": "medium"
+  },
+  {
+   "feature_id": "T43QBB_R09002_C03258",
+   "city": "Mumbai",
+   "change_class": "uncertain",
+   "reviewed_at": "2026-11-18T08:38:33.466Z",
+   "mask_quality": "none",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43QBB_R09514_C06002",
+   "city": "Mumbai",
+   "change_class": "uncertain",
+   "reviewed_at": "2026-11-18T08:38:35.026Z",
+   "mask_quality": "none",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43RGM_R02516_C04516",
+   "city": "Delhi",
+   "change_class": "natural_vegetation",
+   "reviewed_at": "2026-11-18T08:38:44.214Z",
+   "mask_quality": "partial",
+   "confidence": "medium"
+  },
+  {
+   "feature_id": "T43RGM_R08516_C04260",
+   "city": "Delhi",
+   "change_class": "natural_vegetation",
+   "reviewed_at": "2026-11-18T08:39:22.843Z",
+   "mask_quality": "partial",
+   "confidence": "medium"
+  },
+  {
+   "feature_id": "T43RGM_R05260_C02516",
+   "city": "Delhi",
+   "change_class": "uncertain",
+   "reviewed_at": "2026-11-18T08:39:39.158Z",
+   "mask_quality": "partial",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43QBB_R10514_C01002",
+   "city": "Mumbai",
+   "change_class": "uncertain",
+   "reviewed_at": "2026-11-18T08:39:41.137Z",
+   "mask_quality": "none",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43QBB_R00514_C03258",
+   "city": "Mumbai",
+   "change_class": "uncertain",
+   "reviewed_at": "2026-11-18T08:39:42.585Z",
+   "mask_quality": "none",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43RGM_R09004_C01260",
+   "city": "Delhi",
+   "change_class": "natural_vegetation",
+   "reviewed_at": "2026-11-18T08:39:49.177Z",
+   "mask_quality": "partial",
+   "confidence": "medium"
+  },
+  {
+   "feature_id": "T43QBB_R05514_C06514",
+   "city": "Mumbai",
+   "change_class": "uncertain",
+   "reviewed_at": "2026-11-18T08:40:19.687Z",
+   "mask_quality": "partial",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43RGM_R06516_C08004",
+   "city": "Delhi",
+   "change_class": "natural_vegetation",
+   "reviewed_at": "2026-11-18T08:40:23.402Z",
+   "mask_quality": "partial",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43RGM_R01516_C08004",
+   "city": "Delhi",
+   "change_class": "natural_vegetation",
+   "reviewed_at": "2026-11-18T08:40:27.645Z",
+   "mask_quality": "partial",
+   "confidence": "medium"
+  },
+  {
+   "feature_id": "T43QBB_R05002_C00002",
+   "city": "Mumbai",
+   "change_class": "uncertain",
+   "reviewed_at": "2026-11-18T08:40:39.836Z",
+   "mask_quality": "none",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43RGM_R05004_C06260",
+   "city": "Delhi",
+   "change_class": "natural_vegetation",
+   "reviewed_at": "2026-11-18T08:40:42.547Z",
+   "mask_quality": "partial",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43RGM_R03516_C00516",
+   "city": "Delhi",
+   "change_class": "natural_vegetation",
+   "reviewed_at": "2026-11-18T08:40:49.630Z",
+   "mask_quality": "partial",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43RGM_R02260_C00516",
+   "city": "Delhi",
+   "change_class": "demolition",
+   "reviewed_at": "2026-11-18T08:41:04.580Z",
+   "mask_quality": "partial",
+   "confidence": "medium"
+  },
+  {
+   "feature_id": "T43RGM_R01004_C09260",
+   "city": "Delhi",
+   "change_class": "natural_vegetation",
+   "reviewed_at": "2026-11-18T08:41:23.140Z",
+   "mask_quality": "partial",
+   "confidence": "high"
+  },
+  {
+   "feature_id": "T43RGM_R04260_C03516",
+   "city": "Delhi",
+   "change_class": "natural_vegetation",
+   "reviewed_at": "2026-11-18T08:41:41.438Z",
+   "mask_quality": "partial",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43QBB_R09514_C07002",
+   "city": "Mumbai",
+   "change_class": "uncertain",
+   "reviewed_at": "2026-11-18T08:42:13.012Z",
+   "mask_quality": "partial",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43RGM_R07260_C00004",
+   "city": "Delhi",
+   "change_class": "natural_vegetation",
+   "reviewed_at": "2026-11-18T08:42:28.325Z",
+   "mask_quality": "partial",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43RGM_R05260_C10260",
+   "city": "Delhi",
+   "change_class": "natural_vegetation",
+   "reviewed_at": "2026-11-18T08:42:38.223Z",
+   "mask_quality": "partial",
+   "confidence": "high"
+  },
+  {
+   "feature_id": "T43RGM_R08004_C07516",
+   "city": "Delhi",
+   "change_class": "acquisition_artifact",
+   "reviewed_at": "2026-11-18T08:43:00.436Z",
+   "mask_quality": "partial",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43RGM_R02004_C10004",
+   "city": "Delhi",
+   "change_class": "natural_vegetation",
+   "reviewed_at": "2026-11-18T08:57:27.173Z",
+   "mask_quality": "partial",
+   "confidence": "medium"
+  },
+  {
+   "feature_id": "T43RGM_R03516_C01004",
+   "city": "Delhi",
+   "change_class": "natural_vegetation",
+   "reviewed_at": "2026-11-18T08:57:34.501Z",
+   "mask_quality": "partial",
+   "confidence": "medium"
+  },
+  {
+   "feature_id": "T43RGM_R03260_C00516",
+   "city": "Delhi",
+   "change_class": "natural_vegetation",
+   "reviewed_at": "2026-11-18T08:57:44.009Z",
+   "mask_quality": "partial",
+   "confidence": "medium"
+  },
+  {
+   "feature_id": "T43QBB_R10258_C00002",
+   "city": "Mumbai",
+   "change_class": "uncertain",
+   "reviewed_at": "2026-11-18T08:57:45.983Z",
+   "mask_quality": "none",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43QBB_R10514_C02258",
+   "city": "Mumbai",
+   "change_class": "uncertain",
+   "reviewed_at": "2026-11-18T08:57:47.924Z",
+   "mask_quality": "none",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43RGM_R04516_C03004",
+   "city": "Delhi",
+   "change_class": "natural_water",
+   "reviewed_at": "2026-11-18T08:58:01.355Z",
+   "mask_quality": "partial",
+   "confidence": "medium"
+  },
+  {
+   "feature_id": "T43RGM_R02004_C03260",
+   "city": "Delhi",
+   "change_class": "natural_vegetation",
+   "reviewed_at": "2026-11-18T08:58:06.524Z",
+   "mask_quality": "partial",
+   "confidence": "medium"
+  },
+  {
+   "feature_id": "T43RGM_R08004_C05260",
+   "city": "Delhi",
+   "change_class": "construction",
+   "reviewed_at": "2026-11-18T08:58:17.882Z",
+   "mask_quality": "partial",
+   "confidence": "medium"
+  },
+  {
+   "feature_id": "T43RGM_R06004_C02004",
+   "city": "Delhi",
+   "change_class": "construction",
+   "reviewed_at": "2026-11-18T08:58:42.720Z",
+   "mask_quality": "partial",
+   "confidence": "medium"
+  },
+  {
+   "feature_id": "T43RGM_R10004_C00004",
+   "city": "Delhi",
+   "change_class": "natural_vegetation",
+   "reviewed_at": "2026-11-18T08:58:46.237Z",
+   "mask_quality": "partial",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43RGM_R04260_C02516",
+   "city": "Delhi",
+   "change_class": "natural_water",
+   "reviewed_at": "2026-11-18T08:58:56.258Z",
+   "mask_quality": "partial",
+   "confidence": "medium"
+  },
+  {
+   "feature_id": "T43QBB_R05258_C07258",
+   "city": "Mumbai",
+   "change_class": "natural_vegetation",
+   "reviewed_at": "2026-11-18T08:59:01.656Z",
+   "mask_quality": "partial",
+   "confidence": "medium"
+  },
+  {
+   "feature_id": "T43RGM_R08516_C10004",
+   "city": "Delhi",
+   "change_class": "acquisition_artifact",
+   "reviewed_at": "2026-11-18T08:59:07.778Z",
+   "mask_quality": "partial",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43RGM_R08260_C06004",
+   "city": "Delhi",
+   "change_class": "acquisition_artifact",
+   "reviewed_at": "2026-11-18T08:59:12.512Z",
+   "mask_quality": "partial",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43QBB_R05514_C03002",
+   "city": "Mumbai",
+   "change_class": "uncertain",
+   "reviewed_at": "2026-11-18T08:59:15.265Z",
+   "mask_quality": "none",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43QBB_R04002_C06258",
+   "city": "Mumbai",
+   "change_class": "natural_water",
+   "reviewed_at": "2026-11-18T08:59:25.440Z",
+   "mask_quality": "partial",
+   "confidence": "high"
+  },
+  {
+   "feature_id": "T43RGM_R06516_C10004",
+   "city": "Delhi",
+   "change_class": "acquisition_artifact",
+   "reviewed_at": "2026-11-18T08:59:31.693Z",
+   "mask_quality": "partial",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43RGM_R06260_C05260",
+   "city": "Delhi",
+   "change_class": "natural_vegetation",
+   "reviewed_at": "2026-11-18T08:59:34.940Z",
+   "mask_quality": "partial",
+   "confidence": "medium"
+  },
+  {
+   "feature_id": "T43RGM_R00516_C08260",
+   "city": "Delhi",
+   "change_class": "natural_vegetation",
+   "reviewed_at": "2026-11-18T08:59:41.504Z",
+   "mask_quality": "partial",
+   "confidence": "high"
+  },
+  {
+   "feature_id": "T43RGM_R02004_C09516",
+   "city": "Delhi",
+   "change_class": "natural_vegetation",
+   "reviewed_at": "2026-11-18T08:59:45.998Z",
+   "mask_quality": "partial",
+   "confidence": "medium"
+  },
+  {
+   "feature_id": "T43RGM_R01516_C05004",
+   "city": "Delhi",
+   "change_class": "acquisition_artifact",
+   "reviewed_at": "2026-11-18T08:59:57.134Z",
+   "mask_quality": "partial",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43RGM_R03516_C03516",
+   "city": "Delhi",
+   "change_class": "natural_water",
+   "reviewed_at": "2026-11-18T09:00:05.407Z",
+   "mask_quality": "partial",
+   "confidence": "medium"
+  },
+  {
+   "feature_id": "T43RGM_R09004_C05516",
+   "city": "Delhi",
+   "change_class": "acquisition_artifact",
+   "reviewed_at": "2026-11-18T09:00:08.978Z",
+   "mask_quality": "partial",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43QBB_R10514_C09514",
+   "city": "Mumbai",
+   "change_class": "natural_vegetation",
+   "reviewed_at": "2026-11-18T09:00:13.839Z",
+   "mask_quality": "partial",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43QBB_R04514_C00002",
+   "city": "Mumbai",
+   "change_class": "uncertain",
+   "reviewed_at": "2026-11-18T09:00:15.451Z",
+   "mask_quality": "none",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43RGM_R06004_C01516",
+   "city": "Delhi",
+   "change_class": "natural_vegetation",
+   "reviewed_at": "2026-11-18T09:00:17.846Z",
+   "mask_quality": "partial",
+   "confidence": "medium"
+  },
+  {
+   "feature_id": "T43QBB_R00514_C10002",
+   "city": "Mumbai",
+   "change_class": "natural_vegetation",
+   "reviewed_at": "2026-11-18T09:00:20.780Z",
+   "mask_quality": "partial",
+   "confidence": "medium"
+  },
+  {
+   "feature_id": "T43RGM_R03516_C07516",
+   "city": "Delhi",
+   "change_class": "natural_vegetation",
+   "reviewed_at": "2026-11-18T09:00:24.246Z",
+   "mask_quality": "partial",
+   "confidence": "medium"
+  },
+  {
+   "feature_id": "T43QBB_R07258_C09002",
+   "city": "Mumbai",
+   "change_class": "natural_water",
+   "reviewed_at": "2026-11-18T09:00:30.793Z",
+   "mask_quality": "partial",
+   "confidence": "medium"
+  },
+  {
+   "feature_id": "T43QBB_R04514_C04514",
+   "city": "Mumbai",
+   "change_class": "uncertain",
+   "reviewed_at": "2026-11-18T09:00:32.223Z",
+   "mask_quality": "none",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43QBB_R06514_C07002",
+   "city": "Mumbai",
+   "change_class": "natural_vegetation",
+   "reviewed_at": "2026-11-18T09:00:42.068Z",
+   "confidence": "high",
+   "mask_quality": "partial"
+  },
+  {
+   "feature_id": "T43RGM_R06004_C04516",
+   "city": "Delhi",
+   "change_class": "natural_vegetation",
+   "reviewed_at": "2026-11-18T09:00:46.580Z",
+   "mask_quality": "partial",
+   "confidence": "medium"
+  },
+  {
+   "feature_id": "T43RGM_R02260_C07260",
+   "city": "Delhi",
+   "change_class": "natural_vegetation",
+   "reviewed_at": "2026-11-18T09:00:53.293Z",
+   "confidence": "high",
+   "mask_quality": "partial"
+  },
+  {
+   "feature_id": "T43QBB_R08514_C08514",
+   "city": "Mumbai",
+   "change_class": "uncertain",
+   "reviewed_at": "2026-11-18T09:01:11.154Z",
+   "confidence": "low",
+   "mask_quality": "wrong"
+  },
+  {
+   "feature_id": "T43QBB_R04514_C10258",
+   "city": "Mumbai",
+   "change_class": "natural_vegetation",
+   "reviewed_at": "2026-11-18T09:01:16.580Z",
+   "mask_quality": "partial",
+   "confidence": "high"
+  },
+  {
+   "feature_id": "T43RGM_R02516_C05260",
+   "city": "Delhi",
+   "change_class": "natural_vegetation",
+   "reviewed_at": "2026-11-18T09:01:20.871Z",
+   "mask_quality": "partial",
+   "confidence": "medium"
+  },
+  {
+   "feature_id": "T43RGM_R09260_C05004",
+   "city": "Delhi",
+   "change_class": "acquisition_artifact",
+   "reviewed_at": "2026-11-18T09:01:33.311Z",
+   "mask_quality": "partial",
+   "confidence": "medium"
+  },
+  {
+   "feature_id": "T43RGM_R04260_C06516",
+   "city": "Delhi",
+   "change_class": "natural_vegetation",
+   "reviewed_at": "2026-11-18T09:01:41.239Z",
+   "mask_quality": "partial",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43QBB_R02002_C05258",
+   "city": "Mumbai",
+   "change_class": "uncertain",
+   "reviewed_at": "2026-11-18T09:01:46.224Z",
+   "mask_quality": "none",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43RGM_R07516_C07260",
+   "city": "Delhi",
+   "change_class": "natural_vegetation",
+   "reviewed_at": "2026-11-18T09:01:48.675Z",
+   "mask_quality": "partial",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43QBB_R05514_C04002",
+   "city": "Mumbai",
+   "change_class": "uncertain",
+   "reviewed_at": "2026-11-18T09:01:50.366Z",
+   "mask_quality": "none",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43RGM_R04516_C10004",
+   "city": "Delhi",
+   "change_class": "natural_vegetation",
+   "reviewed_at": "2026-11-18T09:01:53.555Z",
+   "mask_quality": "partial",
+   "confidence": "high"
+  },
+  {
+   "feature_id": "T43QBB_R09002_C04002",
+   "city": "Mumbai",
+   "change_class": "uncertain",
+   "reviewed_at": "2026-11-18T09:01:56.743Z",
+   "mask_quality": "none",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43RGM_R01004_C10516",
+   "city": "Delhi",
+   "change_class": "natural_water",
+   "reviewed_at": "2026-11-18T09:02:03.854Z",
+   "mask_quality": "partial",
+   "confidence": "high"
+  },
+  {
+   "feature_id": "T43QBB_R09002_C02002",
+   "city": "Mumbai",
+   "change_class": "uncertain",
+   "reviewed_at": "2026-11-18T09:02:07.237Z",
+   "mask_quality": "none",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43RGM_R04516_C08260",
+   "city": "Delhi",
+   "change_class": "natural_vegetation",
+   "reviewed_at": "2026-11-18T09:03:10.182Z",
+   "mask_quality": "partial",
+   "confidence": "high"
+  },
+  {
+   "feature_id": "T43RGM_R05516_C00516",
+   "city": "Delhi",
+   "change_class": "construction",
+   "reviewed_at": "2026-11-18T09:03:24.355Z",
+   "mask_quality": "partial",
+   "confidence": "high"
+  },
+  {
+   "feature_id": "T43QBB_R06002_C00002",
+   "city": "Mumbai",
+   "change_class": "uncertain",
+   "reviewed_at": "2026-11-18T09:03:26.367Z",
+   "mask_quality": "none",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43QBB_R07002_C04002",
+   "city": "Mumbai",
+   "change_class": "uncertain",
+   "reviewed_at": "2026-11-18T09:03:28.840Z",
+   "mask_quality": "none",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43RGM_R00260_C06004",
+   "city": "Delhi",
+   "change_class": "natural_vegetation",
+   "reviewed_at": "2026-11-18T09:03:40.361Z",
+   "mask_quality": "partial",
+   "confidence": "medium"
+  },
+  {
+   "feature_id": "T43RGM_R04004_C01004",
+   "city": "Delhi",
+   "change_class": "natural_vegetation",
+   "reviewed_at": "2026-11-18T09:03:55.680Z",
+   "mask_quality": "partial",
+   "confidence": "high"
+  },
+  {
+   "feature_id": "T43QBB_R05514_C02514",
+   "city": "Mumbai",
+   "change_class": "uncertain",
+   "reviewed_at": "2026-11-18T09:03:58.370Z",
+   "mask_quality": "none",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43QBB_R09002_C05002",
+   "city": "Mumbai",
+   "change_class": "uncertain",
+   "reviewed_at": "2026-11-18T09:03:59.832Z",
+   "mask_quality": "none",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43RGM_R03260_C05004",
+   "city": "Delhi",
+   "change_class": "natural_vegetation",
+   "reviewed_at": "2026-11-18T09:04:08.366Z",
+   "mask_quality": "partial",
+   "confidence": "medium"
+  },
+  {
+   "feature_id": "T43RGM_R04516_C04004",
+   "city": "Delhi",
+   "change_class": "natural_vegetation",
+   "reviewed_at": "2026-11-18T09:04:12.417Z",
+   "mask_quality": "partial",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43RGM_R09004_C10004",
+   "city": "Delhi",
+   "change_class": "natural_vegetation",
+   "reviewed_at": "2026-11-18T09:04:14.515Z",
+   "mask_quality": "partial",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43QBB_R09002_C10514",
+   "city": "Mumbai",
+   "change_class": "natural_vegetation",
+   "reviewed_at": "2026-11-18T09:04:17.545Z",
+   "mask_quality": "partial",
+   "confidence": "high"
+  },
+  {
+   "feature_id": "T43RGM_R08004_C09260",
+   "city": "Delhi",
+   "change_class": "acquisition_artifact",
+   "reviewed_at": "2026-11-18T09:04:30.221Z",
+   "mask_quality": "partial",
+   "confidence": "medium"
+  },
+  {
+   "feature_id": "T43RGM_R06260_C00260",
+   "city": "Delhi",
+   "change_class": "natural_vegetation",
+   "reviewed_at": "2026-11-18T09:04:35.093Z",
+   "mask_quality": "partial",
+   "confidence": "high"
+  },
+  {
+   "feature_id": "T43RGM_R08516_C03260",
+   "city": "Delhi",
+   "change_class": "acquisition_artifact",
+   "reviewed_at": "2026-11-18T09:04:43.060Z",
+   "mask_quality": "partial",
+   "confidence": "medium"
+  },
+  {
+   "feature_id": "T43QBB_R07258_C07002",
+   "city": "Mumbai",
+   "change_class": "natural_vegetation",
+   "reviewed_at": "2026-11-18T09:04:53.092Z",
+   "mask_quality": "partial",
+   "confidence": "medium"
+  },
+  {
+   "feature_id": "T43RGM_R00004_C10260",
+   "city": "Delhi",
+   "change_class": "natural_water",
+   "reviewed_at": "2026-11-18T09:05:00.684Z",
+   "mask_quality": "partial",
+   "confidence": "medium"
+  },
+  {
+   "feature_id": "T43RGM_R02516_C01004",
+   "city": "Delhi",
+   "change_class": "natural_water",
+   "reviewed_at": "2026-11-18T09:05:09.625Z",
+   "mask_quality": "partial",
+   "confidence": "medium"
+  },
+  {
+   "feature_id": "T43QBB_R00002_C00002",
+   "city": "Mumbai",
+   "change_class": "uncertain",
+   "reviewed_at": "2026-11-18T09:05:11.399Z",
+   "mask_quality": "none",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43QBB_R08258_C09514",
+   "city": "Mumbai",
+   "change_class": "natural_vegetation",
+   "reviewed_at": "2026-11-18T09:05:56.181Z",
+   "mask_quality": "partial",
+   "confidence": "high"
+  },
+  {
+   "feature_id": "T43QBB_R04514_C01002",
+   "city": "Mumbai",
+   "change_class": "uncertain",
+   "reviewed_at": "2026-11-18T09:05:58.609Z",
+   "mask_quality": "none",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43RGM_R05516_C08516",
+   "city": "Delhi",
+   "change_class": "natural_vegetation",
+   "reviewed_at": "2026-11-18T09:06:03.220Z",
+   "mask_quality": "partial",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43QBB_R01002_C04002",
+   "city": "Mumbai",
+   "change_class": "uncertain",
+   "reviewed_at": "2026-11-18T09:06:04.689Z",
+   "mask_quality": "none",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43RGM_R03260_C01260",
+   "city": "Delhi",
+   "change_class": "natural_vegetation",
+   "reviewed_at": "2026-11-18T09:06:12.249Z",
+   "mask_quality": "partial",
+   "confidence": "high"
+  },
+  {
+   "feature_id": "T43RGM_R05260_C08004",
+   "city": "Delhi",
+   "change_class": "natural_vegetation",
+   "reviewed_at": "2026-11-18T09:06:16.952Z",
+   "mask_quality": "partial",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43RGM_R04516_C00004",
+   "city": "Delhi",
+   "change_class": "natural_vegetation",
+   "reviewed_at": "2026-11-18T09:06:26.287Z",
+   "mask_quality": "partial",
+   "confidence": "high"
+  },
+  {
+   "feature_id": "T43RGM_R07516_C08004",
+   "city": "Delhi",
+   "change_class": "acquisition_artifact",
+   "reviewed_at": "2026-11-18T09:06:43.300Z",
+   "mask_quality": "partial",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43QBB_R03002_C07002",
+   "city": "Mumbai",
+   "change_class": "natural_vegetation",
+   "reviewed_at": "2026-11-18T09:06:46.354Z",
+   "mask_quality": "partial",
+   "confidence": "high"
+  },
+  {
+   "feature_id": "T43QBB_R03514_C00514",
+   "city": "Mumbai",
+   "change_class": "uncertain",
+   "reviewed_at": "2026-11-18T09:06:50.170Z",
+   "mask_quality": "none",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43RGM_R09260_C00260",
+   "city": "Delhi",
+   "change_class": "natural_vegetation",
+   "reviewed_at": "2026-11-18T09:06:53.962Z",
+   "mask_quality": "partial",
+   "confidence": "medium"
+  },
+  {
+   "feature_id": "T43QBB_R02514_C10002",
+   "city": "Mumbai",
+   "change_class": "natural_vegetation",
+   "reviewed_at": "2026-11-18T09:06:59.181Z",
+   "mask_quality": "partial",
+   "confidence": "medium"
+  },
+  {
+   "feature_id": "T43QBB_R07514_C01002",
+   "city": "Mumbai",
+   "change_class": "uncertain",
+   "reviewed_at": "2026-11-18T09:07:00.816Z",
+   "mask_quality": "none",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43QBB_R00002_C09514",
+   "city": "Mumbai",
+   "change_class": "natural_water",
+   "reviewed_at": "2026-11-18T09:07:11.457Z",
+   "mask_quality": "partial",
+   "confidence": "medium"
+  },
+  {
+   "feature_id": "T43QBB_R02258_C06514",
+   "city": "Mumbai",
+   "change_class": "natural_vegetation",
+   "reviewed_at": "2026-11-18T09:07:14.190Z",
+   "mask_quality": "partial",
+   "confidence": "medium"
+  },
+  {
+   "feature_id": "T43RGM_R07260_C02004",
+   "city": "Delhi",
+   "change_class": "natural_vegetation",
+   "reviewed_at": "2026-11-18T09:07:16.672Z",
+   "mask_quality": "partial",
+   "confidence": "medium"
+  },
+  {
+   "feature_id": "T43RGM_R04004_C04004",
+   "city": "Delhi",
+   "change_class": "uncertain",
+   "reviewed_at": "2026-11-18T09:07:30.222Z",
+   "mask_quality": "partial",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43RGM_R03260_C09260",
+   "city": "Delhi",
+   "change_class": "natural_vegetation",
+   "reviewed_at": "2026-11-18T10:03:39.489Z",
+   "mask_quality": "partial",
+   "confidence": "high"
+  },
+  {
+   "feature_id": "T43QBB_R02002_C01258",
+   "city": "Mumbai",
+   "change_class": "uncertain",
+   "reviewed_at": "2026-11-18T10:03:47.431Z",
+   "mask_quality": "none",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43RGM_R04004_C08260",
+   "city": "Delhi",
+   "change_class": "natural_vegetation",
+   "reviewed_at": "2026-11-18T10:03:52.418Z",
+   "mask_quality": "partial",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43RGM_R00004_C00004",
+   "city": "Delhi",
+   "change_class": "natural_vegetation",
+   "reviewed_at": "2026-11-18T10:03:59.574Z",
+   "mask_quality": "partial",
+   "confidence": "medium"
+  },
+  {
+   "feature_id": "T43QBB_R03002_C03002",
+   "city": "Mumbai",
+   "change_class": "uncertain",
+   "reviewed_at": "2026-11-18T10:04:03.039Z",
+   "mask_quality": "none",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43RGM_R00260_C02516",
+   "city": "Delhi",
+   "change_class": "natural_vegetation",
+   "reviewed_at": "2026-11-18T10:04:07.456Z",
+   "mask_quality": "partial",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43RGM_R09260_C00004",
+   "city": "Delhi",
+   "change_class": "acquisition_artifact",
+   "reviewed_at": "2026-11-18T10:04:19.020Z",
+   "mask_quality": "partial",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43RGM_R02004_C08260",
+   "city": "Delhi",
+   "change_class": "natural_vegetation",
+   "reviewed_at": "2026-11-18T10:04:24.252Z",
+   "mask_quality": "partial",
+   "confidence": "medium"
+  },
+  {
+   "feature_id": "T43QBB_R10258_C02002",
+   "city": "Mumbai",
+   "change_class": "uncertain",
+   "reviewed_at": "2026-11-18T10:04:26.676Z",
+   "mask_quality": "none",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43RGM_R00516_C04004",
+   "city": "Delhi",
+   "change_class": "natural_vegetation",
+   "reviewed_at": "2026-11-18T10:04:51.654Z",
+   "mask_quality": "partial",
+   "confidence": "high"
+  },
+  {
+   "feature_id": "T43RGM_R05260_C10004",
+   "city": "Delhi",
+   "change_class": "natural_vegetation",
+   "reviewed_at": "2026-11-18T10:06:23.844Z",
+   "mask_quality": "partial",
+   "confidence": "high"
+  },
+  {
+   "feature_id": "T43RGM_R01260_C07260",
+   "city": "Delhi",
+   "change_class": "natural_vegetation",
+   "reviewed_at": "2026-11-18T10:06:37.289Z",
+   "mask_quality": "partial",
+   "confidence": "high"
+  },
+  {
+   "feature_id": "T43QBB_R04258_C07514",
+   "city": "Mumbai",
+   "change_class": "natural_vegetation",
+   "reviewed_at": "2026-11-18T10:06:44.650Z",
+   "mask_quality": "partial",
+   "confidence": "medium"
+  },
+  {
+   "feature_id": "T43RGM_R10516_C01260",
+   "city": "Delhi",
+   "change_class": "acquisition_artifact",
+   "reviewed_at": "2026-11-18T10:06:52.075Z",
+   "mask_quality": "partial",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43RGM_R09516_C07004",
+   "city": "Delhi",
+   "change_class": "natural_vegetation",
+   "reviewed_at": "2026-11-18T10:07:03.690Z",
+   "mask_quality": "partial",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43QBB_R07514_C10258",
+   "city": "Mumbai",
+   "change_class": "natural_vegetation",
+   "reviewed_at": "2026-11-18T10:07:09.299Z",
+   "mask_quality": "partial",
+   "confidence": "medium"
+  },
+  {
+   "feature_id": "T43QBB_R10514_C06002",
+   "city": "Mumbai",
+   "change_class": "uncertain",
+   "reviewed_at": "2026-11-18T10:07:11.259Z",
+   "mask_quality": "none",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43RGM_R10004_C04260",
+   "city": "Delhi",
+   "change_class": "acquisition_artifact",
+   "reviewed_at": "2026-11-18T10:07:17.620Z",
+   "mask_quality": "partial",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43RGM_R07516_C00516",
+   "city": "Delhi",
+   "change_class": "natural_vegetation",
+   "reviewed_at": "2026-11-18T10:07:22.779Z",
+   "mask_quality": "partial",
+   "confidence": "medium"
+  },
+  {
+   "feature_id": "T43RGM_R01004_C06260",
+   "city": "Delhi",
+   "change_class": "natural_vegetation",
+   "reviewed_at": "2026-11-18T10:07:45.856Z",
+   "mask_quality": "partial",
+   "confidence": "medium"
+  },
+  {
+   "feature_id": "T43QBB_R06258_C08002",
+   "city": "Mumbai",
+   "change_class": "natural_vegetation",
+   "reviewed_at": "2026-11-18T10:07:50.285Z",
+   "mask_quality": "partial",
+   "confidence": "medium"
+  },
+  {
+   "feature_id": "T43RGM_R05516_C01004",
+   "city": "Delhi",
+   "change_class": "natural_vegetation",
+   "reviewed_at": "2026-11-18T10:07:54.509Z",
+   "mask_quality": "partial",
+   "confidence": "medium"
+  },
+  {
+   "feature_id": "T43RGM_R10516_C10004",
+   "city": "Delhi",
+   "change_class": "natural_vegetation",
+   "reviewed_at": "2026-11-18T10:07:58.053Z",
+   "mask_quality": "partial",
+   "confidence": "medium"
+  },
+  {
+   "feature_id": "T43RGM_R00004_C01516",
+   "city": "Delhi",
+   "change_class": "natural_vegetation",
+   "reviewed_at": "2026-11-18T10:08:04.507Z",
+   "mask_quality": "partial",
+   "confidence": "medium"
+  },
+  {
+   "feature_id": "T43QBB_R08514_C03514",
+   "city": "Mumbai",
+   "change_class": "uncertain",
+   "reviewed_at": "2026-11-18T10:08:06.731Z",
+   "mask_quality": "none",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43QBB_R00514_C02002",
+   "city": "Mumbai",
+   "change_class": "uncertain",
+   "reviewed_at": "2026-11-18T10:08:08.770Z",
+   "mask_quality": "none",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43RGM_R10260_C05516",
+   "city": "Delhi",
+   "change_class": "natural_vegetation",
+   "reviewed_at": "2026-11-18T10:08:13.768Z",
+   "mask_quality": "partial",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43RGM_R01516_C05516",
+   "city": "Delhi",
+   "change_class": "natural_vegetation",
+   "reviewed_at": "2026-11-18T10:08:19.678Z",
+   "mask_quality": "partial",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43RGM_R10516_C07004",
+   "city": "Delhi",
+   "change_class": "acquisition_artifact",
+   "reviewed_at": "2026-11-18T10:08:24.505Z",
+   "mask_quality": "partial",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43QBB_R07002_C08002",
+   "city": "Mumbai",
+   "change_class": "natural_vegetation",
+   "reviewed_at": "2026-11-18T10:08:29.829Z",
+   "mask_quality": "partial",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43QBB_R02514_C04514",
+   "city": "Mumbai",
+   "change_class": "uncertain",
+   "reviewed_at": "2026-11-18T10:08:31.623Z",
+   "mask_quality": "none",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43QBB_R04514_C09002",
+   "city": "Mumbai",
+   "change_class": "natural_water",
+   "reviewed_at": "2026-11-18T10:08:43.059Z",
+   "mask_quality": "partial",
+   "confidence": "medium"
+  },
+  {
+   "feature_id": "T43RGM_R10260_C10516",
+   "city": "Delhi",
+   "change_class": "natural_vegetation",
+   "reviewed_at": "2026-11-18T10:08:47.403Z",
+   "mask_quality": "partial",
+   "confidence": "medium"
+  },
+  {
+   "feature_id": "T43QBB_R03514_C02514",
+   "city": "Mumbai",
+   "change_class": "uncertain",
+   "reviewed_at": "2026-11-18T10:08:49.139Z",
+   "mask_quality": "none",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43QBB_R07002_C00258",
+   "city": "Mumbai",
+   "change_class": "uncertain",
+   "reviewed_at": "2026-11-18T10:08:51.317Z",
+   "mask_quality": "none",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43RGM_R08516_C08004",
+   "city": "Delhi",
+   "change_class": "acquisition_artifact",
+   "reviewed_at": "2026-11-18T10:08:56.294Z",
+   "mask_quality": "partial",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43RGM_R06004_C00004",
+   "city": "Delhi",
+   "change_class": "natural_vegetation",
+   "reviewed_at": "2026-11-18T10:09:00.957Z",
+   "mask_quality": "partial",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43QBB_R01002_C05002",
+   "city": "Mumbai",
+   "change_class": "uncertain",
+   "reviewed_at": "2026-11-18T10:09:02.588Z",
+   "mask_quality": "none",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43QBB_R08514_C01002",
+   "city": "Mumbai",
+   "change_class": "uncertain",
+   "reviewed_at": "2026-11-18T10:09:04.150Z",
+   "mask_quality": "none",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43QBB_R08002_C00514",
+   "city": "Mumbai",
+   "change_class": "uncertain",
+   "reviewed_at": "2026-11-18T10:11:25.053Z",
+   "confidence": "low",
+   "mask_quality": "wrong"
+  },
+  {
+   "feature_id": "T43QBB_R01514_C07514",
+   "city": "Mumbai",
+   "change_class": "natural_vegetation",
+   "reviewed_at": "2026-11-18T10:09:09.103Z",
+   "mask_quality": "partial",
+   "confidence": "medium"
+  },
+  {
+   "feature_id": "T43RGM_R05516_C06260",
+   "city": "Delhi",
+   "change_class": "natural_vegetation",
+   "reviewed_at": "2026-11-18T10:09:11.186Z",
+   "mask_quality": "partial",
+   "confidence": "medium"
+  },
+  {
+   "feature_id": "T43RGM_R02260_C03516",
+   "city": "Delhi",
+   "change_class": "natural_vegetation",
+   "reviewed_at": "2026-11-18T10:09:15.283Z",
+   "mask_quality": "partial",
+   "confidence": "medium"
+  },
+  {
+   "feature_id": "T43RGM_R06516_C01004",
+   "city": "Delhi",
+   "change_class": "acquisition_artifact",
+   "reviewed_at": "2026-11-18T10:09:19.523Z",
+   "mask_quality": "partial",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43QBB_R00002_C04514",
+   "city": "Mumbai",
+   "change_class": "uncertain",
+   "reviewed_at": "2026-11-18T10:09:21.071Z",
+   "mask_quality": "none",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43RGM_R00516_C04516",
+   "city": "Delhi",
+   "change_class": "natural_vegetation",
+   "reviewed_at": "2026-11-18T10:09:27.813Z",
+   "mask_quality": "partial",
+   "confidence": "medium"
+  },
+  {
+   "feature_id": "T43RGM_R04004_C00004",
+   "city": "Delhi",
+   "change_class": "road",
+   "reviewed_at": "2026-11-18T10:09:36.231Z",
+   "mask_quality": "partial",
+   "confidence": "medium"
+  },
+  {
+   "feature_id": "T43QBB_R01258_C10258",
+   "city": "Mumbai",
+   "change_class": "natural_water",
+   "reviewed_at": "2026-11-18T10:09:46.483Z",
+   "mask_quality": "partial",
+   "confidence": "medium"
+  },
+  {
+   "feature_id": "T43QBB_R07514_C00258",
+   "city": "Mumbai",
+   "change_class": "uncertain",
+   "reviewed_at": "2026-11-18T10:09:50.233Z",
+   "mask_quality": "none",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43RGM_R04260_C05260",
+   "city": "Delhi",
+   "change_class": "acquisition_artifact",
+   "reviewed_at": "2026-11-18T10:09:54.019Z",
+   "mask_quality": "partial",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43QBB_R02514_C02514",
+   "city": "Mumbai",
+   "change_class": "uncertain",
+   "reviewed_at": "2026-11-18T10:09:55.532Z",
+   "mask_quality": "none",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43RGM_R04260_C02004",
+   "city": "Delhi",
+   "change_class": "natural_vegetation",
+   "reviewed_at": "2026-11-18T10:10:03.983Z",
+   "mask_quality": "partial",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43QBB_R08002_C01258",
+   "city": "Mumbai",
+   "change_class": "uncertain",
+   "reviewed_at": "2026-11-18T10:10:05.444Z",
+   "mask_quality": "none",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43QBB_R09002_C00514",
+   "city": "Mumbai",
+   "change_class": "uncertain",
+   "reviewed_at": "2026-11-18T10:10:06.795Z",
+   "mask_quality": "none",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43QBB_R07514_C00002",
+   "city": "Mumbai",
+   "change_class": "uncertain",
+   "reviewed_at": "2026-11-18T10:10:08.158Z",
+   "mask_quality": "none",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43QBB_R01002_C08258",
+   "city": "Mumbai",
+   "change_class": "natural_vegetation",
+   "reviewed_at": "2026-11-18T10:10:12.935Z",
+   "mask_quality": "partial",
+   "confidence": "medium"
+  },
+  {
+   "feature_id": "T43RGM_R10004_C08260",
+   "city": "Delhi",
+   "change_class": "acquisition_artifact",
+   "reviewed_at": "2026-11-18T10:10:19.475Z",
+   "mask_quality": "partial",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43RGM_R05004_C00260",
+   "city": "Delhi",
+   "change_class": "construction",
+   "reviewed_at": "2026-11-18T10:10:36.420Z",
+   "mask_quality": "partial",
+   "confidence": "medium"
+  },
+  {
+   "feature_id": "T43RGM_R10004_C03260",
+   "city": "Delhi",
+   "change_class": "acquisition_artifact",
+   "reviewed_at": "2026-11-18T10:10:41.261Z",
+   "mask_quality": "partial",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43RGM_R09260_C06004",
+   "city": "Delhi",
+   "change_class": "acquisition_artifact",
+   "reviewed_at": "2026-11-18T10:10:51.342Z",
+   "mask_quality": "partial",
+   "confidence": "medium"
+  },
+  {
+   "feature_id": "T43QBB_R09514_C01002",
+   "city": "Mumbai",
+   "change_class": "uncertain",
+   "reviewed_at": "2026-11-18T10:10:54.949Z",
+   "mask_quality": "none",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43QBB_R01258_C00514",
+   "city": "Mumbai",
+   "change_class": "uncertain",
+   "reviewed_at": "2026-11-18T10:10:57.987Z",
+   "mask_quality": "none",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43QBB_R06258_C02514",
+   "city": "Mumbai",
+   "change_class": "uncertain",
+   "reviewed_at": "2026-11-18T10:10:59.480Z",
+   "mask_quality": "none",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43QBB_R02514_C03002",
+   "city": "Mumbai",
+   "change_class": "uncertain",
+   "reviewed_at": "2026-11-18T10:11:00.963Z",
+   "mask_quality": "none",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43RGM_R07260_C04516",
+   "city": "Delhi",
+   "change_class": "acquisition_artifact",
+   "reviewed_at": "2026-11-18T10:11:04.872Z",
+   "mask_quality": "partial",
+   "confidence": "low"
+  },
+  {
+   "feature_id": "T43QBB_R03258_C10258",
+   "city": "Mumbai",
+   "change_class": "natural_vegetation",
+   "reviewed_at": "2026-11-18T10:11:07.864Z",
+   "mask_quality": "partial",
+   "confidence": "medium"
+  }
+ ]
+}
