@@ -1,0 +1,21 @@
+{
+ "name": "ground_ce_loco_train_mumbai",
+ "model": "ground",
+ "widths": [
+  16,
+  32,
+  64,
+  128
+ ],
+ "width_mult": 0.5,
+ "epochs": 12,
+ "batch_size": 16,
+ "lr": 0.003,
+ "weight_decay": 0.0001,
+ "loss": "ce",
+ "augment": true,
+ "radiometric_jitter": 0.05,
+ "seed": 20261118,
+ "threads": 6,
+ "train_city": "mumbai"
+}

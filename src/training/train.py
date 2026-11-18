@@ -88,6 +88,16 @@ def augment(before, after, y, jitter: float):
     return before, after, y
 
 
+def band_stats(x: np.ndarray, y: np.ndarray) -> list[list[float]]:
+    """Per-band mean/std over valid pixels of both dates (as in patches.py)."""
+    valid = np.repeat((y != IGNORE)[:, None], 2, axis=1)
+    out = []
+    for band in range(x.shape[2]):
+        values = x[:, :, band].astype(np.float32)[valid]
+        out.append([float(values.mean()), float(values.std() + 1e-6)])
+    return out
+
+
 def class_weights(y: np.ndarray, num_classes: int, cfg: dict) -> torch.Tensor:
     t = prepare_targets(torch.from_numpy(y), cfg).numpy()
     counts = np.bincount(t[t != IGNORE].ravel(), minlength=num_classes).astype(float)
@@ -144,6 +154,11 @@ def train(cfg: dict) -> dict:
     train_npz, val_npz = np.load(PATCHES / "train.npz"), np.load(PATCHES / "val.npz")
     x_train, y_train = train_npz["x"], train_npz["y"]
     x_val, y_val = val_npz["x"], val_npz["y"]
+    if cfg.get("train_city"):
+        # Leave-one-city-out: train, validate and normalise with one city only.
+        keep, keep_val = train_npz["city"] == cfg["train_city"], val_npz["city"] == cfg["train_city"]
+        x_train, y_train, x_val, y_val = x_train[keep], y_train[keep], x_val[keep_val], y_val[keep_val]
+        stats = band_stats(x_train, y_train)
     if cfg.get("extra_patches"):
         # Human-corrected patches (train blocks only), repeated to raise their weight.
         extra = np.load(ROOT / cfg["extra_patches"])

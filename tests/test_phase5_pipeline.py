@@ -143,3 +143,14 @@ def test_reviewed_negative_windows_become_all_no_change():
     valid = np.array([[True, True], [True, False]])
     assert corrected_target(weak, valid, "natural_vegetation").tolist() == [[0, 0], [0, 255]]
     assert corrected_target(weak, valid, "construction").tolist() == [[1, 2], [0, 255]]
+
+
+def test_band_stats_ignore_unlabelled_pixels():
+    from src.training.train import band_stats
+    x = np.zeros((2, 2, 6, 4, 4), np.float16)
+    x[:, :, :, :2] = 1.0           # labelled half
+    x[:, :, :, 2:] = 9.0           # ignored half must not affect stats
+    y = np.full((2, 4, 4), 255, np.uint8)
+    y[:, :2] = 0
+    stats = band_stats(x, y)
+    assert len(stats) == 6 and all(abs(m - 1.0) < 1e-6 and s < 1e-3 for m, s in stats)

@@ -65,6 +65,12 @@ def window_features(x: np.ndarray, valid: np.ndarray, cmap: np.ndarray) -> np.nd
     ], np.float32)
 
 
+def make_filter():
+    """Fixed settings, never tuned: standardised features, C=0.1, balanced weights."""
+    return make_pipeline(StandardScaler(), LogisticRegression(C=0.1, class_weight="balanced",
+                                                              max_iter=1000))
+
+
 def auroc_ci(score: np.ndarray, truth: np.ndarray, n: int = 1000, seed: int = 20261118) -> list[float]:
     rng = np.random.default_rng(seed)
     vals = []
@@ -101,8 +107,7 @@ def run(run_dir: Path, reviews_path: Path = REVIEWS) -> dict:
     fit = decided & (split == "train")
     held = decided & np.isin(split, ["val", "test", "zero_shot"])
 
-    model = make_pipeline(StandardScaler(), LogisticRegression(C=0.1, class_weight="balanced",
-                                                               max_iter=1000))
+    model = make_filter()
     model.fit(feats[fit], truth[fit])
     score = model.predict_proba(feats)[:, 1]
     thr = best_threshold(score[fit], truth[fit])
