@@ -1,0 +1,119 @@
+{
+ "config": {
+  "name": "ground_wce_dice_lr0.003_nojitter",
+  "model": "ground",
+  "widths": [
+   16,
+   32,
+   64,
+   128
+  ],
+  "width_mult": 0.5,
+  "epochs": 6,
+  "batch_size": 16,
+  "lr": 0.003,
+  "weight_decay": 0.0001,
+  "loss": "wce_dice",
+  "augment": true,
+  "radiometric_jitter": 0.0,
+  "seed": 20261118,
+  "threads": 6
+ },
+ "parameters": 1175571,
+ "class_weights": [
+  0.10287902504205704,
+  1.0508637428283691,
+  1.846257209777832
+ ],
+ "band_mean_std_train": [
+  [
+   0.06198137626051903,
+   0.029619988054037094
+  ],
+  [
+   0.08691582083702087,
+   0.030981777235865593
+  ],
+  [
+   0.09064243733882904,
+   0.04360820725560188
+  ],
+  [
+   0.21244853734970093,
+   0.0816463753581047
+  ],
+  [
+   0.19938339293003082,
+   0.07417681813240051
+  ],
+  [
+   0.143331840634346,
+   0.06433434039354324
+  ]
+ ],
+ "best_weakval": {
+  "precision": 0.38128048572500595,
+  "recall": 0.7450882367644853,
+  "f1": 0.5044309188445202,
+  "iou": 0.33728359672613434,
+  "epoch": 6
+ },
+ "train_seconds": 435.0,
+ "history": [
+  {
+   "epoch": 1,
+   "train_loss": 1.733860078921988,
+   "epoch_seconds": 72.4,
+   "weakval_precision": 0.0856,
+   "weakval_recall": 0.8126,
+   "weakval_f1": 0.1548,
+   "weakval_iou": 0.0839
+  },
+  {
+   "epoch": 2,
+   "train_loss": 1.109003944830461,
+   "epoch_seconds": 72.3,
+   "weakval_precision": 0.1982,
+   "weakval_recall": 0.7631,
+   "weakval_f1": 0.3147,
+   "weakval_iou": 0.1868
+  },
+  {
+   "epoch": 3,
+   "train_loss": 0.8565008837329454,
+   "epoch_seconds": 72.3,
+   "weakval_precision": 0.3392,
+   "weakval_recall": 0.7466,
+   "weakval_f1": 0.4664,
+   "weakval_iou": 0.3041
+  },
+  {
+   "epoch": 4,
+   "train_loss": 0.7436902592004824,
+   "epoch_seconds": 73.1,
+   "weakval_precision": 0.2589,
+   "weakval_recall": 0.7393,
+   "weakval_f1": 0.3835,
+   "weakval_iou": 0.2372
+  },
+  {
+   "epoch": 5,
+   "train_loss": 0.6801192745689518,
+   "epoch_seconds": 72.5,
+   "weakval_precision": 0.3203,
+   "weakval_recall": 0.7605,
+   "weakval_f1": 0.4508,
+   "weakval_iou": 0.291
+  },
+  {
+   "epoch": 6,
+   "train_loss": 0.6369461813741479,
+   "epoch_seconds": 72.3,
+   "weakval_precision": 0.3813,
+   "weakval_recall": 0.7451,
+   "weakval_f1": 0.5044,
+   "weakval_iou": 0.3373
+  }
+ ],
+ "selection": "best epoch by weak-validation change F1 (proxy only)"
+}

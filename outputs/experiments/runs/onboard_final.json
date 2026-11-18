@@ -1,0 +1,290 @@
+{
+ "config": {
+  "name": "onboard_final",
+  "model": "onboard",
+  "widths": [
+   16,
+   32,
+   64,
+   128
+  ],
+  "width_mult": 0.5,
+  "epochs": 25,
+  "batch_size": 16,
+  "lr": 0.003,
+  "weight_decay": 0.0001,
+  "loss": "wce_dice",
+  "augment": true,
+  "radiometric_jitter": 0.05,
+  "seed": 20261118,
+  "threads": 6
+ },
+ "parameters": 279274,
+ "class_weights": [
+  0.20248475670814514,
+  1.7975152730941772
+ ],
+ "band_mean_std_train": [
+  [
+   0.06198137626051903,
+   0.029619988054037094
+  ],
+  [
+   0.08691582083702087,
+   0.030981777235865593
+  ],
+  [
+   0.09064243733882904,
+   0.04360820725560188
+  ],
+  [
+   0.21244853734970093,
+   0.0816463753581047
+  ],
+  [
+   0.19938339293003082,
+   0.07417681813240051
+  ],
+  [
+   0.143331840634346,
+   0.06433434039354324
+  ]
+ ],
+ "best_weakval": {
+  "precision": 0.1714033808274646,
+  "recall": 0.26241063840423934,
+  "f1": 0.20736107453252564,
+  "iou": 0.11567364268766574,
+  "epoch": 25
+ },
+ "train_seconds": 527.6,
+ "history": [
+  {
+   "epoch": 1,
+   "train_loss": 1.5257424125986652,
+   "epoch_seconds": 21.4,
+   "weakval_precision": 0.0095,
+   "weakval_recall": 0.0002,
+   "weakval_f1": 0.0004,
+   "weakval_iou": 0.0002
+  },
+  {
+   "epoch": 2,
+   "train_loss": 1.4531285930270992,
+   "epoch_seconds": 21.0,
+   "weakval_precision": 0.0111,
+   "weakval_recall": 0.0003,
+   "weakval_f1": 0.0005,
+   "weakval_iou": 0.0003
+  },
+  {
+   "epoch": 3,
+   "train_loss": 1.3419553031606122,
+   "epoch_seconds": 20.8,
+   "weakval_precision": 0.0967,
+   "weakval_recall": 0.0176,
+   "weakval_f1": 0.0298,
+   "weakval_iou": 0.0151
+  },
+  {
+   "epoch": 4,
+   "train_loss": 1.2501736071484149,
+   "epoch_seconds": 20.8,
+   "weakval_precision": 0.0772,
+   "weakval_recall": 0.3347,
+   "weakval_f1": 0.1254,
+   "weakval_iou": 0.0669
+  },
+  {
+   "epoch": 5,
+   "train_loss": 1.2230310597695595,
+   "epoch_seconds": 20.8,
+   "weakval_precision": 0.106,
+   "weakval_recall": 0.3157,
+   "weakval_f1": 0.1587,
+   "weakval_iou": 0.0862
+  },
+  {
+   "epoch": 6,
+   "train_loss": 1.209843218819169,
+   "epoch_seconds": 21.0,
+   "weakval_precision": 0.1168,
+   "weakval_recall": 0.2087,
+   "weakval_f1": 0.1498,
+   "weakval_iou": 0.081
+  },
+  {
+   "epoch": 7,
+   "train_loss": 1.2030786285715656,
+   "epoch_seconds": 20.9,
+   "weakval_precision": 0.0969,
+   "weakval_recall": 0.1984,
+   "weakval_f1": 0.1302,
+   "weakval_iou": 0.0696
+  },
+  {
+   "epoch": 8,
+   "train_loss": 1.190245414568373,
+   "epoch_seconds": 21.3,
+   "weakval_precision": 0.1057,
+   "weakval_recall": 0.2259,
+   "weakval_f1": 0.1441,
+   "weakval_iou": 0.0776
+  },
+  {
+   "epoch": 9,
+   "train_loss": 1.1852327437440227,
+   "epoch_seconds": 21.3,
+   "weakval_precision": 0.0419,
+   "weakval_recall": 0.2773,
+   "weakval_f1": 0.0728,
+   "weakval_iou": 0.0377
+  },
+  {
+   "epoch": 10,
+   "train_loss": 1.1784742095253684,
+   "epoch_seconds": 21.1,
+   "weakval_precision": 0.0863,
+   "weakval_recall": 0.2445,
+   "weakval_f1": 0.1276,
+   "weakval_iou": 0.0681
+  },
+  {
+   "epoch": 11,
+   "train_loss": 1.1780528096128102,
+   "epoch_seconds": 21.2,
+   "weakval_precision": 0.0567,
+   "weakval_recall": 0.1705,
+   "weakval_f1": 0.0851,
+   "weakval_iou": 0.0445
+  },
+  {
+   "epoch": 12,
+   "train_loss": 1.1649160907288227,
+   "epoch_seconds": 21.2,
+   "weakval_precision": 0.0682,
+   "weakval_recall": 0.1924,
+   "weakval_f1": 0.1006,
+   "weakval_iou": 0.053
+  },
+  {
+   "epoch": 13,
+   "train_loss": 1.1493383946497577,
+   "epoch_seconds": 21.0,
+   "weakval_precision": 0.0766,
+   "weakval_recall": 0.1968,
+   "weakval_f1": 0.1103,
+   "weakval_iou": 0.0583
+  },
+  {
+   "epoch": 14,
+   "train_loss": 1.1549269276216996,
+   "epoch_seconds": 21.0,
+   "weakval_precision": 0.1601,
+   "weakval_recall": 0.1793,
+   "weakval_f1": 0.1692,
+   "weakval_iou": 0.0924
+  },
+  {
+   "epoch": 15,
+   "train_loss": 1.146299589763988,
+   "epoch_seconds": 21.2,
+   "weakval_precision": 0.1573,
+   "weakval_recall": 0.1172,
+   "weakval_f1": 0.1343,
+   "weakval_iou": 0.072
+  },
+  {
+   "epoch": 16,
+   "train_loss": 1.1426106405652259,
+   "epoch_seconds": 22.0,
+   "weakval_precision": 0.1618,
+   "weakval_recall": 0.2299,
+   "weakval_f1": 0.1899,
+   "weakval_iou": 0.1049
+  },
+  {
+   "epoch": 17,
+   "train_loss": 1.1384303308715504,
+   "epoch_seconds": 21.0,
+   "weakval_precision": 0.1593,
+   "weakval_recall": 0.2413,
+   "weakval_f1": 0.1919,
+   "weakval_iou": 0.1061
+  },
+  {
+   "epoch": 18,
+   "train_loss": 1.1309305956541014,
+   "epoch_seconds": 20.9,
+   "weakval_precision": 0.1577,
+   "weakval_recall": 0.2775,
+   "weakval_f1": 0.2011,
+   "weakval_iou": 0.1118
+  },
+  {
+   "epoch": 19,
+   "train_loss": 1.1266466492463734,
+   "epoch_seconds": 21.0,
+   "weakval_precision": 0.1946,
+   "weakval_recall": 0.1893,
+   "weakval_f1": 0.1919,
+   "weakval_iou": 0.1061
+  },
+  {
+   "epoch": 20,
+   "train_loss": 1.124253951813564,
+   "epoch_seconds": 21.1,
+   "weakval_precision": 0.1816,
+   "weakval_recall": 0.2126,
+   "weakval_f1": 0.1959,
+   "weakval_iou": 0.1086
+  },
+  {
+   "epoch": 21,
+   "train_loss": 1.1151793810946882,
+   "epoch_seconds": 21.1,
+   "weakval_precision": 0.179,
+   "weakval_recall": 0.2413,
+   "weakval_f1": 0.2055,
+   "weakval_iou": 0.1145
+  },
+  {
+   "epoch": 22,
+   "train_loss": 1.11448649778839,
+   "epoch_seconds": 21.5,
+   "weakval_precision": 0.1702,
+   "weakval_recall": 0.2533,
+   "weakval_f1": 0.2036,
+   "weakval_iou": 0.1133
+  },
+  {
+   "epoch": 23,
+   "train_loss": 1.1106696729817667,
+   "epoch_seconds": 21.8,
+   "weakval_precision": 0.1675,
+   "weakval_recall": 0.2703,
+   "weakval_f1": 0.2069,
+   "weakval_iou": 0.1154
+  },
+  {
+   "epoch": 24,
+   "train_loss": 1.1142815282522154,
+   "epoch_seconds": 21.2,
+   "weakval_precision": 0.1771,
+   "weakval_recall": 0.2426,
+   "weakval_f1": 0.2048,
+   "weakval_iou": 0.1141
+  },
+  {
+   "epoch": 25,
+   "train_loss": 1.108969043601643,
+   "epoch_seconds": 19.7,
+   "weakval_precision": 0.1714,
+   "weakval_recall": 0.2624,
+   "weakval_f1": 0.2074,
+   "weakval_iou": 0.1157
+  }
+ ],
+ "selection": "best epoch by weak-validation change F1 (proxy only)",
+ "status": "complete"
+}

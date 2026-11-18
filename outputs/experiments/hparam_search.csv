@@ -1,0 +1,10 @@
+name,model,loss,lr,radiometric_jitter,epochs,parameters,best_epoch,weakval_precision,weakval_recall,weakval_f1,weakval_iou,train_seconds
+ground_ce_lr0.001,ground,ce,0.001,0.05,6,1175571,5,0.5414,0.2756,0.3653,0.2234,720.3
+ground_ce_lr0.003,ground,ce,0.003,0.05,6,1175571,5,0.5373,0.4464,0.4877,0.3224,740.2
+ground_wce_lr0.001,ground,wce,0.001,0.05,6,1175571,6,0.2497,0.8079,0.3815,0.2357,588.7
+ground_wce_lr0.003,ground,wce,0.003,0.05,6,1175571,6,0.2652,0.8266,0.4015,0.2512,578.6
+ground_wce_dice_lr0.001,ground,wce_dice,0.001,0.05,6,1175571,6,0.3277,0.7568,0.4573,0.2964,519.5
+ground_wce_dice_lr0.003,ground,wce_dice,0.003,0.05,6,1175571,6,0.3917,0.6996,0.5022,0.3353,435.4
+ground_wce_dice_lr0.003_nojitter,ground,wce_dice,0.003,0.0,6,1175571,6,0.3813,0.7451,0.5044,0.3373,435.0
+onboard_wce_dice_lr0.001,onboard,wce_dice,0.001,0.05,6,279274,6,0.1025,0.2078,0.1372,0.0737,117.8
+onboard_wce_dice_lr0.003,onboard,wce_dice,0.003,0.05,6,279274,6,0.132,0.232,0.1683,0.0919,117.5
