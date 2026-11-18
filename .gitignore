@@ -41,3 +41,10 @@ __pycache__/
 .mypy_cache/
 .ruff_cache/
 .ipynb_checkpoints/
+
+# Derived training/evaluation intermediates (reproducible from the scripts).
+/outputs/patches/
+/outputs/weak_labels/*.tif
+/outputs/review/
+/outputs/quantization/*.onnx
+*.log

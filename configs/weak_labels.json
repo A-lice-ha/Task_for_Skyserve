@@ -1,0 +1,31 @@
+{
+  "_comment": "Spectral weak-label rules. Thresholds are assumptions, not calibrated values; human-reviewed windows evaluate them (see docs/PHASE_5_EVALUATION.md).",
+  "version": 1,
+  "block_size": 1098,
+  "halo": 16,
+  "haze": {
+    "kernel_px": 31,
+    "regional_blue_increase_min": 0.035
+  },
+  "registration_tolerance_px": 1,
+  "built_gain": {
+    "ndbi_increase_min": 0.10,
+    "ndvi_after_max": 0.30,
+    "ndvi_change_max": 0.0,
+    "mndwi_after_max": 0.0
+  },
+  "built_loss": {
+    "ndbi_decrease_min": 0.10,
+    "ndvi_increase_max": 0.15,
+    "mndwi_after_max": 0.0,
+    "blue_increase_haze_max": 0.03
+  },
+  "ambiguous": {
+    "ndvi_before_vegetated_min": 0.40
+  },
+  "natural": {
+    "vegetation_abs_dndvi_min": 0.20,
+    "water_abs_dmndwi_min": 0.30
+  },
+  "min_component_px": 4
+}

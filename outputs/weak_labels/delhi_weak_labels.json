@@ -1,0 +1,46 @@
+{
+  "city": "Delhi",
+  "pair_id": "DEL_T43RGM_20231006_20261022",
+  "output": "delhi_weak_labels.tif",
+  "config": {
+    "_comment": "Spectral weak-label rules. Thresholds are assumptions, not calibrated values; human-reviewed windows evaluate them (see docs/PHASE_5_EVALUATION.md).",
+    "version": 1,
+    "block_size": 1098,
+    "halo": 16,
+    "haze": {
+      "kernel_px": 31,
+      "regional_blue_increase_min": 0.035
+    },
+    "registration_tolerance_px": 1,
+    "built_gain": {
+      "ndbi_increase_min": 0.1,
+      "ndvi_after_max": 0.3,
+      "ndvi_change_max": 0.0,
+      "mndwi_after_max": 0.0
+    },
+    "built_loss": {
+      "ndbi_decrease_min": 0.1,
+      "ndvi_increase_max": 0.15,
+      "mndwi_after_max": 0.0,
+      "blue_increase_haze_max": 0.03
+    },
+    "ambiguous": {
+      "ndvi_before_vegetated_min": 0.4
+    },
+    "natural": {
+      "vegetation_abs_dndvi_min": 0.2,
+      "water_abs_dmndwi_min": 0.3
+    },
+    "min_component_px": 4
+  },
+  "pixel_counts": {
+    "stable": 68976575,
+    "built_gain": 853643,
+    "built_loss": 576294,
+    "vegetation_change": 17095145,
+    "water_change": 1546933,
+    "ambiguous": 31506785,
+    "invalid": 5025
+  },
+  "role": "weak_training_labels_not_ground_truth"
+}
