@@ -8,7 +8,7 @@ AI assistants were used throughout this assignment. Every chat session tied to t
 | 2026-11-13 17:11 | 2026-11-13 17:14 | Google Antigravity | Claude Opus 4.6 (Thinking) (from the session's model setting) | [2026-11-13_antigravity_d04acb37.md](docs/ai_usage/2026-11-13_antigravity_d04acb37.md) |
 | 2026-11-13 17:12 | 2026-11-13 17:14 | Google Antigravity sub-agent of d04acb37 | not recorded in Antigravity's log | [2026-11-13_antigravity_40881020.md](docs/ai_usage/2026-11-13_antigravity_40881020.md) |
 | 2026-11-17 04:19 | 2026-11-18 05:50 | GitHub Copilot (VS Code agent host) | gpt-6-luna, unknown, mai-code-2-flash | [2026-11-17_copilot_0e48a2da.md](docs/ai_usage/2026-11-17_copilot_0e48a2da.md) |
-| 2026-11-18 05:38 | 2026-11-18 12:49 | Claude Code (VS Code extension) | claude-opus-5-5, <synthetic> | [2026-11-18_claude_code_316b0a77.md](docs/ai_usage/2026-11-18_claude_code_316b0a77.md) |
+| 2026-11-18 05:38 | 2026-11-18 12:53 | Claude Code (VS Code extension) | claude-opus-5-5, <synthetic> | [2026-11-18_claude_code_316b0a77.md](docs/ai_usage/2026-11-18_claude_code_316b0a77.md) |
 
 ## What each transcript contains
 
