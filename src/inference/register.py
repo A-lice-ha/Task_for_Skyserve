@@ -140,6 +140,19 @@ def build(city: str, tag: str, out: Path = MAPS) -> gpd.GeoDataFrame:
         gdf["human_class"] = joined["human_class"]
     gdf["review_status"] = [
         _status(t, h if isinstance(h, str) else None) for t, h in zip(gdf["change_type"], gdf["human_class"])]
+    # Second-stage context score of the enclosing 2.56 km window (if computed).
+    ctx_path = out / f"{city}_{tag}_context.tif"
+    if ctx_path.exists():
+        with rasterio.open(ctx_path) as ctx:
+            grid, thr = ctx.read(1), float(ctx.tags().get("threshold", "nan"))
+            cents = gdf.geometry.centroid
+            rr, cc = rasterio.transform.rowcol(ctx.transform, cents.x.values, cents.y.values)
+            rr = np.clip(np.asarray(rr), 0, grid.shape[0] - 1)
+            cc = np.clip(np.asarray(cc), 0, grid.shape[1] - 1)
+            gdf["context_score"] = np.round(grid[rr, cc], 4)
+            gdf["context_flag"] = gdf["context_score"] >= thr
+            # Priority for analysts: context first, then pixel confidence.
+            gdf["priority_score"] = np.round(gdf["context_score"] * gdf["confidence"], 4)
     centroids = gdf.geometry.centroid.to_crs(4326)
     gdf.insert(0, "detection_id", [f"{city[:3].upper()}-{i:05d}" for i in range(1, len(gdf) + 1)])
     gdf["lat"], gdf["lon"] = centroids.y.round(6), centroids.x.round(6)
@@ -159,6 +172,11 @@ def main(argv: list[str] | None = None) -> None:
         if gdf.empty:
             continue
         gdf.to_file(args.out / f"{city}_{args.tag}_detections.gpkg", layer="detections", driver="GPKG")
+        if "context_flag" in gdf:
+            # Compact, committed layer: detections inside windows the
+            # second-stage context filter flags, highest priority first.
+            gdf[gdf["context_flag"]].sort_values("priority_score", ascending=False).to_file(
+                args.out / f"priority_detections_{args.tag}.gpkg", layer=city, driver="GPKG")
         frames.append(gdf)
         print(city, len(gdf), gdf["change_type"].value_counts().to_dict(),
               gdf["review_status"].value_counts().to_dict())

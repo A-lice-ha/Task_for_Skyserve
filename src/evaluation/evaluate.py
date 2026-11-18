@@ -41,8 +41,41 @@ def attach_splits(reviews: list[dict]) -> list[dict]:
         cands = gpd.read_file(ROOT / "data" / "labels" / "candidates" / f"{city}_candidates.geojson")
         blocks.update(dict(zip(cands["feature_id"], cands["spatial_block_id"])))
     for r in reviews:
-        r["split"] = manifest[r["city"].lower()]["blocks"].get(blocks[r["feature_id"]], "excluded")
+        r["block"] = blocks[r["feature_id"]]
+        r["split"] = manifest[r["city"].lower()]["blocks"].get(r["block"], "excluded")
     return reviews
+
+
+def select_k(change: np.ndarray, truth: np.ndarray) -> int:
+    best_k, best_f1 = K_GRID[-1], -1.0
+    for k in K_GRID:
+        f1 = prf(change >= k, truth)["f1"] if len(truth) else 0.0
+        if f1 > best_f1:  # ties keep the smaller k (higher sensitivity)
+            best_k, best_f1 = k, f1
+    return best_k
+
+
+def grouped_cv(change: np.ndarray, truth: np.ndarray, groups: np.ndarray,
+               cls: np.ndarray, folds: int = 5) -> dict:
+    """Out-of-fold window decisions: k chosen on the other folds' blocks.
+
+    Uses all held-out (val + test + zero-shot) windows, whose blocks no model
+    was trained on, instead of the 2 validation positives alone.
+    """
+    unique = np.array(sorted(set(groups)))
+    rng = np.random.default_rng(SEED)
+    fold_of_block = dict(zip(rng.permutation(unique), np.arange(len(unique)) % folds))
+    fold = np.array([fold_of_block[g] for g in groups])
+    pred = np.zeros(len(truth), bool)
+    ks = []
+    for f in range(folds):
+        k = select_k(change[fold != f], truth[fold != f])
+        ks.append(k)
+        pred[fold == f] = change[fold == f] >= k
+    natural = np.isin(cls, list(NATURAL))
+    return {**prf(pred, truth), "f1_95ci": bootstrap_f1(pred, truth), "folds": folds,
+            "blocks": int(len(unique)), "k_per_fold": ks,
+            "natural_false_alarm_rate": round(float(pred[natural].mean()), 4) if natural.any() else None}
 
 
 def prf(pred: np.ndarray, truth: np.ndarray) -> dict:
@@ -65,6 +98,28 @@ def bootstrap_f1(pred: np.ndarray, truth: np.ndarray, n: int = 1000) -> list[flo
     return [round(float(np.percentile(scores, 2.5)), 4), round(float(np.percentile(scores, 97.5)), 4)]
 
 
+def ranking(score: np.ndarray, truth: np.ndarray) -> dict:
+    """Average precision and AUROC of a window score; ties share ranks."""
+    pos, neg = int(truth.sum()), int((~truth).sum())
+    out = {"n": int(len(truth)), "positives": pos, "prevalence": round(pos / len(truth), 4) if len(truth) else None}
+    if not pos or not neg:
+        return {**out, "average_precision": None, "auroc": None}
+    order = np.argsort(-score, kind="stable")
+    s, t = score[order], truth[order]
+    tp = np.cumsum(t)
+    # Evaluate precision only at the last index of each tied score group.
+    last = np.r_[s[1:] != s[:-1], True]
+    prec = tp[last] / (np.flatnonzero(last) + 1)
+    rec_gain = np.diff(np.r_[0, tp[last]]) / pos
+    ap = float((prec * rec_gain).sum())
+    sorted_s = np.sort(score)
+    lo = np.searchsorted(sorted_s, score, "left")
+    hi = np.searchsorted(sorted_s, score, "right")
+    ranks = (lo + hi + 1) / 2.0
+    auroc = float((ranks[truth].sum() - pos * (pos + 1) / 2) / (pos * neg))
+    return {**out, "average_precision": round(ap, 4), "auroc": round(auroc, 4)}
+
+
 def score_method(name: str, maps: np.ndarray, reviews: list[dict], weak: np.ndarray) -> dict:
     """maps: (N, H, W) class maps aligned with reviews."""
     gain = (maps == 1).sum((1, 2))
@@ -77,11 +132,7 @@ def score_method(name: str, maps: np.ndarray, reviews: list[dict], weak: np.ndar
     truth = np.isin(cls, list(POSITIVE))
 
     val = decided & (split == "val")
-    best_k, best_f1 = K_GRID[-1], -1.0
-    for k in K_GRID:
-        f1 = prf(change[val] >= k, truth[val])["f1"] if val.any() else 0.0
-        if f1 > best_f1:  # ties keep the smaller k (higher sensitivity)
-            best_k, best_f1 = k, f1
+    best_k = select_k(change[val], truth[val])
     pred = change >= best_k
 
     result = {"method": name, "k_selected_on_val": best_k, "splits": {}}
@@ -95,6 +146,13 @@ def score_method(name: str, maps: np.ndarray, reviews: list[dict], weak: np.ndar
                 m["f1_95ci"] = bootstrap_f1(pred[sel], truth[sel])
             result["splits"][f"{s}/{c}"] = m
     held = np.isin(split, ["test", "zero_shot"])
+    # Threshold-free ranking quality (supplementary; validation has very few
+    # positives, so the val-selected k is fragile).
+    pooled = decided & np.isin(split, ["val", "test", "zero_shot"])
+    result["ranking_heldout_val_test_zeroshot"] = ranking(change[pooled].astype(float), truth[pooled])
+    if all("block" in r for r in reviews):
+        groups = np.array([r["block"] for r in reviews])
+        result["grouped_cv_heldout"] = grouped_cv(change[pooled], truth[pooled], groups[pooled], cls[pooled])
     nat = held & np.isin(cls, list(NATURAL))
     result["natural_false_alarm_rate_heldout"] = {
         "n": int(nat.sum()),
@@ -172,15 +230,19 @@ def write(summary: dict, out: Path = OUT) -> None:
         writer = csv.DictWriter(handle, fieldnames=list(rows[0]))
         writer.writeheader()
         writer.writerows(rows)
-    table = ["| Method | k | Test P | Test R | Test F1 (95% CI) | Zero-shot F1 | Natural false-alarm rate |",
-             "|---|---:|---:|---:|---|---:|---:|"]
+    table = ["| Method | k | Test P | Test R | Test F1 (95% CI) | Zero-shot F1 | Natural false-alarm rate | Held-out AP / AUROC | Block-CV F1 (95% CI) |",
+             "|---|---:|---:|---:|---|---:|---:|---|---|"]
     for m in slim["methods"]:
         t = m["splits"].get("test/all", {})
         z = m["splits"].get("zero_shot/all", {})
         nat = m["natural_false_alarm_rate_heldout"]
         table.append(f"| {m['method']} | {m['k_selected_on_val']} | {t.get('precision', '–')} | "
                      f"{t.get('recall', '–')} | {t.get('f1', '–')} {t.get('f1_95ci', '')} | "
-                     f"{z.get('f1', '–')} | {nat['rate']} (n={nat['n']}) |")
+                     f"{z.get('f1', '–')} | {nat['rate']} (n={nat['n']}) | "
+                     f"{m['ranking_heldout_val_test_zeroshot']['average_precision']} / "
+                     f"{m['ranking_heldout_val_test_zeroshot']['auroc']} | "
+                     f"{m.get('grouped_cv_heldout', {}).get('f1', '–')} "
+                     f"{m.get('grouped_cv_heldout', {}).get('f1_95ci', '')} |")
     (out / "metrics_table.md").write_text("\n".join(table) + "\n", encoding="utf-8")
     print("\n".join(table))
 

@@ -144,9 +144,17 @@ def train(cfg: dict) -> dict:
     train_npz, val_npz = np.load(PATCHES / "train.npz"), np.load(PATCHES / "val.npz")
     x_train, y_train = train_npz["x"], train_npz["y"]
     x_val, y_val = val_npz["x"], val_npz["y"]
+    if cfg.get("extra_patches"):
+        # Human-corrected patches (train blocks only), repeated to raise their weight.
+        extra = np.load(ROOT / cfg["extra_patches"])
+        reps = int(cfg.get("extra_repeat", 1))
+        x_train = np.concatenate([x_train] + [extra["x"]] * reps)
+        y_train = np.concatenate([y_train] + [extra["y"]] * reps)
     n_bands = bands_for(cfg)
 
     model = build_model(cfg)
+    if cfg.get("init_from"):
+        model.load_state_dict(torch.load(ROOT / cfg["init_from"] / "model.pt", weights_only=True))
     num_classes = 3 if cfg["model"] == "ground" else 2
     weights = class_weights(y_train, num_classes, cfg)
     opt = torch.optim.AdamW(model.parameters(), lr=cfg["lr"], weight_decay=cfg["weight_decay"])
@@ -183,7 +191,9 @@ def train(cfg: dict) -> dict:
                   **{f"weakval_{k}": round(v, 4) for k, v in scores.items()}}
         history.append(record)
         print(json.dumps(record), flush=True)
-        if scores["f1"] > best["f1"]:
+        # "last": weak-val F1 rewards the weak rules' biases that human-corrected
+        # fine-tuning is meant to remove, so keep the final epoch instead.
+        if scores["f1"] > best["f1"] or cfg.get("select") == "last":
             best = {**scores, "epoch": epoch + 1}
             torch.save(model.state_dict(), run_dir / "model.pt")
             _write_run(run_dir, cfg, model, weights, stats, best, started, history, partial=True)
@@ -200,7 +210,8 @@ def _write_run(run_dir, cfg, model, weights, stats, best, started, history, part
         "best_weakval": best,
         "train_seconds": round(time.perf_counter() - started, 1),
         "history": history,
-        "selection": "best epoch by weak-validation change F1 (proxy only)",
+        "selection": ("last epoch" if cfg.get("select") == "last"
+                      else "best epoch by weak-validation change F1 (proxy only)"),
         "status": "in_progress" if partial else "complete",
     }
     (run_dir / "run.json").write_text(json.dumps(result, indent=1), encoding="utf-8")

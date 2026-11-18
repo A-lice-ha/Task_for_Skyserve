@@ -3,7 +3,7 @@
 Selection uses the human review and one method's window decisions
 (outputs/evaluation/window_predictions.csv); held-out (test/zero-shot) windows
 are preferred. Each panel: T1 | T2 | T2 + model change outline (red gain,
-cyan loss). Writes outputs/evidence/<category>_<n>_<feature_id>.png and
+cyan loss). Writes outputs/evidence/<category>_<n>_<feature_id>.jpg and
 outputs/evidence/README.md.
 """
 
@@ -78,7 +78,7 @@ def main(argv: list[str] | None = None) -> None:
     notes = {r["feature_id"]: r.get("notes", "") for r in load_reviews(REVIEWS)}
     preds["confidence"] = preds["confidence"].map({"high": 0, "medium": 1, "low": 2}).fillna(3)
     OUT.mkdir(parents=True, exist_ok=True)
-    for old in OUT.glob("*.png"):
+    for old in [*OUT.glob("*.png"), *OUT.glob("*.jpg")]:
         old.unlink()
     lines = [f"# Evidence gallery\n\nMethod: `{args.method}` · change map: `{args.tag}`. "
              "Panels: T1 | T2 | T2 + model outline (red gain, cyan loss). "
@@ -92,8 +92,8 @@ def main(argv: list[str] | None = None) -> None:
             t2 = cv2.imread(str(CHIPS / f"{fid}_t2.jpg"))
             ov = _overlay(t2, _window_classes(city, args.tag, fid))
             panel = np.hstack([_label(t1, "T1"), _label(t2, "T2"), _label(ov, "T2 + model")])
-            name = f"{category}_{n}_{fid}.png"
-            cv2.imwrite(str(OUT / name), panel)
+            name = f"{category}_{n}_{fid}.jpg"
+            cv2.imwrite(str(OUT / name), panel, [cv2.IMWRITE_JPEG_QUALITY, 92])
             note = str(notes.get(fid) or "").replace("\n", " ")
             lines.append(f"- **{fid}** ({r['city']}, {r['split']}): human `{r['human_class']}`; "
                          f"model gain {r['gain_px']} px / loss {r['loss_px']} px, flagged={r['flagged']}. "

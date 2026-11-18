@@ -1,0 +1,20 @@
+{
+ "name": "ground_wce_dice_final",
+ "model": "ground",
+ "widths": [
+  16,
+  32,
+  64,
+  128
+ ],
+ "width_mult": 0.5,
+ "epochs": 12,
+ "batch_size": 16,
+ "lr": 0.003,
+ "weight_decay": 0.0001,
+ "loss": "wce_dice",
+ "augment": true,
+ "radiometric_jitter": 0.05,
+ "seed": 20261118,
+ "threads": 6
+}

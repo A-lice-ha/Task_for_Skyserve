@@ -115,3 +115,31 @@ def test_small_change_retention_counts_overlap():
 def test_ai_usage_export_strips_injected_context_and_emails():
     text = "hi <system-reminder>secret context</system-reminder> mail me at a.b@example.org"
     assert clean(text) == "hi  mail me at [email redacted]"
+
+
+def test_ranking_matches_known_values_and_handles_ties():
+    from src.evaluation.evaluate import ranking
+    truth = np.array([True, False, True, False])
+    perfect = ranking(np.array([4.0, 1.0, 3.0, 2.0]), truth)
+    assert perfect["auroc"] == 1.0 and perfect["average_precision"] == 1.0
+    tied = ranking(np.ones(4), truth)
+    assert tied["auroc"] == 0.5 and tied["average_precision"] == 0.5
+
+
+def test_grouped_cv_keeps_blocks_together():
+    from src.evaluation.evaluate import grouped_cv
+    change = np.array([500, 400, 0, 0, 300, 0, 0, 0, 600, 0])
+    truth = change > 0
+    groups = np.array(["a", "a", "b", "b", "c", "c", "d", "d", "e", "e"])
+    cls = np.where(truth, "construction", "natural_vegetation")
+    out = grouped_cv(change, truth, groups, cls)
+    assert out["blocks"] == 5 and len(out["k_per_fold"]) == 5
+    assert out["f1"] == 1.0 and out["natural_false_alarm_rate"] == 0.0
+
+
+def test_reviewed_negative_windows_become_all_no_change():
+    from src.training.reviewed_patches import corrected_target
+    weak = np.array([[1, 2], [3, 5]], np.uint8)
+    valid = np.array([[True, True], [True, False]])
+    assert corrected_target(weak, valid, "natural_vegetation").tolist() == [[0, 0], [0, 255]]
+    assert corrected_target(weak, valid, "construction").tolist() == [[1, 2], [0, 255]]

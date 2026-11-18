@@ -1,0 +1,11 @@
+{
+ "name": "ground_wce_dice_hf",
+ "model": "ground",
+ "loss": "wce_dice",
+ "init_from": "outputs/models/ground_wce_dice_final",
+ "extra_patches": "outputs/patches/reviewed_train.npz",
+ "extra_repeat": 1,
+ "epochs": 3,
+ "lr": 0.0003,
+ "select": "last"
+}
