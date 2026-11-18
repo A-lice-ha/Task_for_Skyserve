@@ -280,4 +280,10 @@ uncertain cases, with the human class and model pixel counts.
   windows, not the whole tiles.
 - 10 m pixels with ~1 px residual misregistration cannot resolve individual
   buildings or narrow roads; detection polygons are approximate.
+- Not reliably assessable: weak-label ambiguous area 3,860 km² (Mumbai,
+  32 %) and 3,151 km² (Delhi, 26 %), combining T1-vegetated land, regional
+  haze and sub-4 px blobs (split between causes not recorded); invalid
+  1,372 km² in Mumbai (cloud/shadow, screened sea). The
+  pixel model still predicts there; treat those predictions as unassessed.
+  Source: `outputs/weak_labels/<city>_weak_labels.json`.
 
