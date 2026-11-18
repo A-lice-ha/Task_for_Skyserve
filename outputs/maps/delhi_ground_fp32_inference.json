@@ -1,0 +1,15 @@
+{
+ "city": "delhi",
+ "model": "outputs\\models\\ground_ce_final",
+ "region_row_col_h_w": [
+  0,
+  0,
+  10980,
+  10980
+ ],
+ "tiles": 2500,
+ "threads": 6,
+ "seconds": 285.2,
+ "class_map": "delhi_ground_fp32_change_class.tif",
+ "prob_map": "delhi_ground_fp32_change_prob.tif"
+}

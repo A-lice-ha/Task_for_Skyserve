@@ -1,0 +1,15 @@
+{
+ "city": "delhi",
+ "model": "outputs\\models\\ground_ce_final\\model_int8.onnx",
+ "region_row_col_h_w": [
+  0,
+  0,
+  10980,
+  10980
+ ],
+ "tiles": 2500,
+ "threads": 6,
+ "seconds": 221.3,
+ "class_map": "delhi_ground_int8_change_class.tif",
+ "prob_map": "delhi_ground_int8_change_prob.tif"
+}

@@ -1,0 +1,15 @@
+{
+ "city": "mumbai",
+ "model": "outputs\\models\\ground_ce_final",
+ "region_row_col_h_w": [
+  0,
+  0,
+  10980,
+  10980
+ ],
+ "tiles": 2480,
+ "threads": 6,
+ "seconds": 285.6,
+ "class_map": "mumbai_ground_fp32_change_class.tif",
+ "prob_map": "mumbai_ground_fp32_change_prob.tif"
+}
