@@ -6,7 +6,7 @@ AI assistants were used throughout this assignment. Every chat session tied to t
 |---|---|---|---|---|
 | 2026-11-13 17:00 | 2026-11-13 17:02 | GitHub Copilot (VS Code agent host) | mai-code-1.1-flash | [2026-11-13_copilot_99f59a09.md](docs/ai_usage/2026-11-13_copilot_99f59a09.md) |
 | 2026-11-17 04:19 | 2026-11-18 05:50 | GitHub Copilot (VS Code agent host) | gpt-6-luna, unknown, mai-code-2-flash | [2026-11-17_copilot_0e48a2da.md](docs/ai_usage/2026-11-17_copilot_0e48a2da.md) |
-| 2026-11-18 05:38 | 2026-11-18 11:36 | Claude Code (VS Code extension) | claude-opus-5-5, <synthetic> | [2026-11-18_claude_code_316b0a77.md](docs/ai_usage/2026-11-18_claude_code_316b0a77.md) |
+| 2026-11-18 05:38 | 2026-11-18 12:04 | Claude Code (VS Code extension) | claude-opus-5-5, <synthetic> | [2026-11-18_claude_code_316b0a77.md](docs/ai_usage/2026-11-18_claude_code_316b0a77.md) |
 
 ## What each transcript contains
 
