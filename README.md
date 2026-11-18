@@ -45,6 +45,7 @@ repository root with `.\venv\Scripts\python.exe -m <module>`.
 | Step | Command | Output |
 |---|---|---|
 | 1. Preprocess and register (Sen2Cor, stacks, masks, registration) | `src.preprocessing.phase2 --help` (see Phase 2 doc) | `outputs/processed/`, `outputs/registered/` |
+| 1b. Independent registration check | `src.preprocessing.registration_check` | `outputs/reports/registration_check.{json,md}` |
 | 2. Candidate review windows | `src.training.generate_candidates` | `data/labels/candidates/*.geojson` |
 | 3. Weak labels | `src.training.weak_labels` | `outputs/weak_labels/` |
 | 4. Spatial splits | `src.training.assign_splits` | `data/manifests/spatial_splits.json`, `data/labels/spatial_splits.gpkg` |

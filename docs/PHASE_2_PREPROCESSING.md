@@ -7,6 +7,12 @@
 > 3×3 registration tolerance and register areas carry ± one boundary pixel
 > ([DECISION_LOG D-002, D-005](DECISION_LOG.md)). Independent stable
 > checkpoints were not measured.
+>
+> **Later the same day (D-019):** an independent check on stable features
+> measured 0.10 px (Delhi) and 0.33 px (Mumbai) median residual, and found
+> that the registered rasters are identical to the unregistered stacks: a
+> rasterio pitfall ignored the fitted transform. This is fixed in code; the
+> effect of the fix is at most 0.5 m. See the technical report §3.
 
 ## Implementation
 

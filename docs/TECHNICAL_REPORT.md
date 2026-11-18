@@ -9,8 +9,11 @@ All numbers are measured unless marked as a plan or limit. Detailed results:
 
 - **Data.** Two same-tile Sentinel-2A pairs: Mumbai T43QBB 2022-12-23 →
   2023-05-12 (140 days) and Delhi T43RGM 2023-10-06 → 2026-10-22 (1,112
-  days). Processed to L2A with Sen2Cor, six-band 10 m stacks, registered with
-  ~1 px residual; Delhi's 2026 scene has regional haze that the SCL mask misses.
+  days). Processed to L2A with Sen2Cor into six-band 10 m stacks. An
+  independent check on stable features measured residual misalignment of
+  0.10 px (Delhi) and 0.33 px (Mumbai) median, max 0.6 px. It also found that
+  the registration step had been a no-op because of a rasterio pitfall (fixed;
+  effect ≤ 0.5 m). Delhi's 2026 scene has regional haze that the SCL mask misses.
 - **Labels.** No labels were supplied. Training used rule-based weak labels
   (built-up gain/loss with a one-pixel registration tolerance, haze and
   vegetation ambiguity rules). Evaluation used a **blind human review of all
@@ -48,7 +51,7 @@ All numbers are measured unless marked as a plan or limit. Detailed results:
   detection register (86,982 polygons with type, area ± uncertainty,
   confidence, context score and review status; 831 prioritised), evidence
   panels for accepted, rejected, missed and uncertain cases, original and
-  INT8 model artifacts, configs, seeds, 53 unit tests and the AI usage record.
+  INT8 model artifacts, configs, seeds, 54 unit tests and the AI usage record.
 
 ## 1. Objective, scope, and change classes
 
@@ -277,10 +280,62 @@ The implementation must be windowed: one full-tile 10 m float32 band is about
 1.93 GB decimal, exceeding available free RAM on the inspected development
 machine. Full-tile multi-band arrays are not a safe processing strategy here.
 
+### Independent registration check on stable features (D-019)
+
+The tie-point residuals above are measured on the same points used for the
+fit. Registration was checked independently with
+[`../src/preprocessing/registration_check.py`](../src/preprocessing/registration_check.py)
+(outputs: `outputs/reports/registration_check.{json,md}` and
+`registration_checkpoints.csv`):
+
+- **Checkpoints:** 64 × 64 px windows on a 128 px grid that are fully
+  valid, ≥ 90 % stable under the change rules, and textured (B08 standard
+  deviation ≥ 0.02). These are existing built-up areas, roads and field
+  boundaries.
+- **Method:** each window is phase cross-correlated at sub-pixel precision
+  (scikit-image, upsampling × 20, Hanning window) in B04 and B08
+  separately. A checkpoint is kept only if the two bands agree within
+  0.5 px. On synthetic shifts the method's error is RMSE 0.12 px.
+- **Independence:** this is area correlation at full resolution, not
+  feature matching on a preview, and uses hundreds of windows instead of
+  about 300 points.
+
+| Pair | Checkpoints (kept / candidates) | Mean offset dx, dy | Median | RMSE | P90 | Max | > 1 px | Coverage (4×4 cells) |
+|---|---|---|---:|---:|---:|---:|---:|---|
+| Delhi T43RGM | 695 / 702 | 0.25 m, −0.79 m | 1.0 m (0.10 px) | 1.1 m | 1.6 m | 3.8 m | 0 % | 14 / 16 |
+| Mumbai T43QBB | 230 / 314 | −1.07 m, −3.01 m | 3.3 m (0.33 px) | 3.4 m | 4.5 m | 6.0 m | 0 % | 7 / 16 |
+
+The supplied L1C products, processed to L2A, are already co-registered well
+below one pixel. In Mumbai most of the residual is a constant offset of
+about 3 m, northward in the later image; without it, RMSE is 1.3 m. Mumbai
+coverage is limited to 7 of 16 cells because much of the tile is sea or
+cloud-masked.
+
+**Registration bug found by this check.** The rasters written by the
+registration step are pixel-for-pixel identical to the unregistered L2A
+stacks on every valid pixel.
+
+- **Cause:** the warp passed `rasterio.band(...)` as its source. Rasterio
+  1.4.3 then uses the file's own transform and silently ignores the fitted
+  `src_transform`. Only the validity masks were applied.
+- **Fix:** `phase2.warp_block` reads an ndarray block instead. A
+  regression test checks that a 0.5 px shift is actually applied.
+- **Effect of the fix,** measured with each fitted transform applied
+  correctly on the same checkpoints:
+  - the default fit changes the median shift from 1.00 to 1.12 m (Delhi,
+    slightly worse) and from 3.25 to 2.78 m (Mumbai, slightly better);
+  - the 15 m-tolerance fit changes nothing.
+- **What the results used:** every result in this report was computed on
+  the unwarped alignment measured above. Re-running everything for a change
+  of at most 0.5 m was not justified. The registered rasters were therefore
+  not regenerated.
+
 ### How the preprocessing limits were handled downstream
 
-- **~1 px residual misregistration:** the default registered rasters (not
-  the 15 m comparison) are used throughout. Weak gain/loss requires the
+- **Residual misregistration** (assumed ~1 px from visual checks; measured
+  0.10 px median in Delhi and 0.33 px in Mumbai, max 0.6 px): the as-written
+  registered rasters, which equal the unregistered L2A stacks (D-019), are
+  used throughout. Weak gain/loss requires the
   change to exceed the 3×3 neighbourhood maximum of the earlier date, so a
   one-pixel edge shift cannot create change (unit-tested); register areas
   carry ± one boundary pixel of uncertainty.
@@ -568,13 +623,13 @@ attempted.
 - Pinned dependencies ([`../requirements.txt`](../requirements.txt), CPU
   PyTorch), product checksums, a frozen split manifest, versioned rule and
   training configs (`configs/`), fixed seed 20261118 everywhere, per-run
-  configs and histories (`outputs/experiments/runs/`), and 53 unit tests.
+  configs and histories (`outputs/experiments/runs/`), and 54 unit tests.
 - Step-by-step commands and a 6 × 6 km demo are in the [README](../README.md).
   Committed artifacts: both models (PyTorch, ONNX FP32, ONNX INT8),
   quantization reports, window-filter parameters, FP32 change-class maps,
   context grids, the register CSV, the priority GeoPackage and the evidence
   panels. Larger derived rasters are regenerated by the listed commands.
-- Decisions D-001 to D-018 with alternatives and evidence:
+- Decisions D-001 to D-019 with alternatives and evidence:
   [DECISION_LOG.md](DECISION_LOG.md).
 - AI usage: [`../AI_USAGE.md`](../AI_USAGE.md) indexes the full,
   chronological transcripts of every GitHub Copilot and Claude Code session
@@ -586,7 +641,7 @@ attempted.
 | Assignment area | Status |
 |---|---|
 | Data audit | Complete (metadata, checksums, SCL coverage, AOT, haze finding) |
-| Preprocessing and registration | Complete; ~1 px residual accepted and modelled; no independent checkpoints |
+| Preprocessing and registration | Complete; residual measured independently (0.10 / 0.33 px median); registration no-op bug found and fixed (D-019) |
 | Onboard/ground architecture | Implemented, trained and quantized; onboard not run on flight hardware |
 | Training and tuning | Complete: 9-run search, ablation, 3 final runs, human-corrected fine-tune, leave-one-city-out |
 | Change analysis and validation | Complete on 306 reviewed windows; maps, register and evidence produced |

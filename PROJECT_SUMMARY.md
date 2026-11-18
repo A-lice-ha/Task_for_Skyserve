@@ -28,10 +28,14 @@ generalisation.
 
 - Sen2Cor 2.13.02 converts L1C to L2A surface reflectance. The six-band
   10 m stack (B02, B03, B04, B08, B11, B12) uses an SCL-based validity mask.
-- The later date is registered to the earlier one with ORB/RANSAC. Visual
-  checks show about one pixel of residual shift, which is modelled
-  downstream (3×3 tolerance in the labelling rules; ± one boundary pixel on
-  areas).
+- The later date is registered to the earlier one with ORB/RANSAC.
+- An independent check on stable features measured residual misalignment
+  of 0.10 px (Delhi) and 0.33 px (Mumbai) median, max 0.6 px. It also found
+  that the warp had silently not been applied (rasterio pitfall). This is
+  fixed; its effect is at most 0.5 m, so results were not regenerated
+  (D-019).
+- Downstream, a 3×3 tolerance in the labelling rules and ± one boundary
+  pixel on areas cover the remaining misalignment.
 - The 2026 Delhi scene has regional haze that SCL misses. It is handled by
   a regional haze rule and the review class `acquisition_artifact`.
 
@@ -120,12 +124,12 @@ result uses OSM.** The cache under `data/labels/osm/` allows resumption
 - Product checksums and a frozen split manifest.
 - Versioned configs (`configs/`) and seed 20261118 throughout.
 - Every run's config and history (`outputs/experiments/runs/`).
-- 53 unit tests.
+- 54 unit tests.
 - Committed artifacts: both models (PyTorch, ONNX FP32, ONNX INT8),
   quantization reports, FP32 change-class maps, context grids, the register
   CSV, the priority GeoPackage and the evidence panels. Larger rasters are
   regenerated with the README commands.
-- Decisions D-001 to D-018 are in the decision log.
+- Decisions D-001 to D-019 are in the decision log.
 - AI usage: `AI_USAGE.md` and `docs/ai_usage/` hold the full Copilot and
   Claude Code transcripts.
 

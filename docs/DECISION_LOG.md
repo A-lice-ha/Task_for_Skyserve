@@ -24,6 +24,7 @@ detailed in the phase documents and summarised here so the log is complete.
 | D-016 | 2026-11-18 | Second-stage window context filter for prioritisation |
 | D-017 | 2026-11-18 | Percentile calibration replaces MinMax for INT8 |
 | D-018 | 2026-11-18 | Leave-one-city-out stress test |
+| D-019 | 2026-11-18 | Independent registration check; registration no-op bug |
 
 ---
 
@@ -50,6 +51,9 @@ detailed in the phase documents and summarised here so the log is complete.
   for both pairs.
 - **Consequence:** downstream rules and evaluation must not count a one-pixel
   edge shift as change (D-005).
+- **Revised by D-019:** an independent check measured 0.10 px (Delhi) and
+  0.33 px (Mumbai) median residual, and found that the warp had not been
+  applied. The ~1 px assumption was conservative.
 
 ## D-003 Historical OSM is supporting evidence only; per-element conversion failures
 
@@ -318,3 +322,28 @@ Ambiguous and invalid pixels are ignored in training (`ignore_index=255`).
   city requires reviewed windows from that city. D-014's choice not to
   retrain per fold is unchanged: retraining moved no metric outside its
   confidence interval.
+
+## D-019 Independent registration check; registration step was a no-op
+
+- **Check:** `src/preprocessing/registration_check.py`.
+  - Sub-pixel phase correlation (B04 and B08 must agree within 0.5 px;
+    method RMSE 0.12 px on synthetic shifts).
+  - Run on 64 px stable, textured, fully valid windows: 695 checkpoints in
+    Delhi and 230 in Mumbai.
+- **Result:** median residual 1.0 m in Delhi and 3.3 m in Mumbai; P90 1.6 /
+  4.5 m; maximum 3.8 / 6.0 m; no checkpoint above 1 px. The Mumbai residual
+  is mostly a constant ~3 m offset.
+- **Bug:** the written "registered" rasters equal the unregistered stacks.
+  `reproject(source=rasterio.band(...), src_transform=...)` uses the file's
+  own transform and ignores `src_transform` (rasterio 1.4.3; reproduced in
+  isolation). Fixed in `phase2.warp_block`, with a regression test.
+- **Effect:** applying the fitted transforms correctly changes the median
+  shift by +0.12 m (Delhi) and −0.47 m (Mumbai); the 15 m fit is an
+  identity. Results were not regenerated: all were computed on the
+  unwarped alignment, whose accuracy is now measured. Re-running
+  `phase2.py register` with the fixed code gives rasters that differ by
+  at most 0.5 m.
+- **Alternatives considered:** regenerating the registered rasters and
+  every downstream step (weak labels, patches, training, evaluation, maps)
+  for a sub-0.05 px median change. Rejected as not worth the risk on the
+  deadline; recorded here instead.
