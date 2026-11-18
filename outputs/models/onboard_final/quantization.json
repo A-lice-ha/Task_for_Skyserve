@@ -1,6 +1,7 @@
 {
  "run": "onboard_final",
- "method": "ORT static PTQ variant 'qdq_conv_u8': QDQ, Conv-only, UINT8 activations, per-channel INT8 weights, MinMax; Sub/Abs differences and softmax kept FP32",
+ "variant": "qdq_conv_u8_pct",
+ "method": "ORT static PTQ variant 'qdq_conv_u8_pct': QDQ, ops ['Conv'], activations QUInt8, per-channel INT8 weights, calibration Percentile; Sub/Abs differences and softmax kept FP32",
  "variant_sweep_first_80_windows": {
   "qdq_all_s8": {
    "size_mib": 0.777,
@@ -10,7 +11,7 @@
     "retained_by_int8": 382,
     "retention": 0.7318
    },
-   "latency_1thr": 17.66
+   "latency_1thr": 29.62
   },
   "qdq_conv_u8": {
    "size_mib": 0.732,
@@ -20,7 +21,7 @@
     "retained_by_int8": 380,
     "retention": 0.728
    },
-   "latency_1thr": 12.44
+   "latency_1thr": 19.25
   },
   "qop_conv_u8": {
    "size_mib": 0.545,
@@ -30,7 +31,7 @@
     "retained_by_int8": 288,
     "retention": 0.5517
    },
-   "latency_1thr": 12.55
+   "latency_1thr": 20.07
   },
   "qdq_conv_u8_pct": {
    "size_mib": 0.732,
@@ -40,7 +41,7 @@
     "retained_by_int8": 463,
     "retention": 0.887
    },
-   "latency_1thr": 12.03
+   "latency_1thr": 19.68
   }
  },
  "calibration": "64 train-split 96 px patches zero-padded to 256 (seed 20261118)",
@@ -48,44 +49,44 @@
   "fp32": 1.126,
   "int8": 0.732
  },
- "pixel_agreement_all_windows": 0.99614,
- "change_iou_fp32_vs_int8": 0.8047,
+ "pixel_agreement_all_windows": 0.99603,
+ "change_iou_fp32_vs_int8": 0.81,
  "small_change_retention": {
   "fp32_small_components": 3634,
-  "retained_by_int8": 2770,
-  "retention": 0.7622
+  "retained_by_int8": 3177,
+  "retention": 0.8742
  },
  "runtime": {
   "fp32": [
    {
     "threads": 1,
-    "latency_ms_median": 11.23,
-    "latency_ms_p90": 11.59,
-    "peak_rss_mib": 296.2,
-    "peak_rss_delta_mib": 26.0
+    "latency_ms_median": 18.35,
+    "latency_ms_p90": 19.15,
+    "peak_rss_mib": 296.3,
+    "peak_rss_delta_mib": 25.5
    },
    {
     "threads": 4,
-    "latency_ms_median": 5.98,
-    "latency_ms_p90": 6.31,
-    "peak_rss_mib": 297.5,
-    "peak_rss_delta_mib": 27.0
+    "latency_ms_median": 8.32,
+    "latency_ms_p90": 9.79,
+    "peak_rss_mib": 302.2,
+    "peak_rss_delta_mib": 31.9
    }
   ],
   "int8": [
    {
     "threads": 1,
-    "latency_ms_median": 12.13,
-    "latency_ms_p90": 13.04,
-    "peak_rss_mib": 306.7,
-    "peak_rss_delta_mib": 36.3
+    "latency_ms_median": 20.66,
+    "latency_ms_p90": 22.16,
+    "peak_rss_mib": 306.4,
+    "peak_rss_delta_mib": 35.9
    },
    {
     "threads": 4,
-    "latency_ms_median": 8.52,
-    "latency_ms_p90": 9.92,
-    "peak_rss_mib": 307.9,
-    "peak_rss_delta_mib": 36.5
+    "latency_ms_median": 12.54,
+    "latency_ms_p90": 13.59,
+    "peak_rss_mib": 306.7,
+    "peak_rss_delta_mib": 36.0
    }
   ]
  },
@@ -239,6 +240,30 @@
     "average_precision": 0.0654,
     "auroc": 0.3504
    },
+   "grouped_cv_heldout": {
+    "n": 122,
+    "positives": 10,
+    "tp": 8,
+    "fp": 98,
+    "fn": 2,
+    "precision": 0.0755,
+    "recall": 0.8,
+    "f1": 0.1379,
+    "f1_95ci": [
+     0.0561,
+     0.2168
+    ],
+    "folds": 5,
+    "blocks": 100,
+    "k_per_fold": [
+     1,
+     64,
+     8,
+     8,
+     8
+    ],
+    "natural_false_alarm_rate": 0.8716
+   },
    "natural_false_alarm_rate_heldout": {
     "n": 53,
     "rate": 0.7925,
@@ -312,14 +337,14 @@
      "n": 58,
      "positives": 6,
      "tp": 5,
-     "fp": 39,
+     "fp": 41,
      "fn": 1,
-     "precision": 0.1136,
+     "precision": 0.1087,
      "recall": 0.8333,
-     "f1": 0.2,
+     "f1": 0.1923,
      "f1_95ci": [
-      0.0455,
-      0.3448
+      0.0444,
+      0.3334
      ]
     },
     "test/mumbai": {
@@ -336,11 +361,11 @@
      "n": 40,
      "positives": 5,
      "tp": 4,
-     "fp": 28,
+     "fp": 30,
      "fn": 1,
-     "precision": 0.125,
+     "precision": 0.1176,
      "recall": 0.8,
-     "f1": 0.2162
+     "f1": 0.2051
     },
     "zero_shot/all": {
      "n": 4,
@@ -415,12 +440,36 @@
     "n": 122,
     "positives": 10,
     "prevalence": 0.082,
-    "average_precision": 0.0644,
-    "auroc": 0.3379
+    "average_precision": 0.066,
+    "auroc": 0.3571
+   },
+   "grouped_cv_heldout": {
+    "n": 122,
+    "positives": 10,
+    "tp": 8,
+    "fp": 96,
+    "fn": 2,
+    "precision": 0.0769,
+    "recall": 0.8,
+    "f1": 0.1404,
+    "f1_95ci": [
+     0.0583,
+     0.2242
+    ],
+    "folds": 5,
+    "blocks": 100,
+    "k_per_fold": [
+     8,
+     64,
+     8,
+     8,
+     8
+    ],
+    "natural_false_alarm_rate": 0.8532
    },
    "natural_false_alarm_rate_heldout": {
     "n": 53,
-    "rate": 0.7547,
+    "rate": 0.7925,
     "by_class": {
      "acquisition_artifact": {
       "n": 14,
@@ -428,7 +477,7 @@
      },
      "natural_vegetation": {
       "n": 36,
-      "flagged": 30
+      "flagged": 32
      },
      "natural_water": {
       "n": 3,

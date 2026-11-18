@@ -1,0 +1,18 @@
+{
+ "mumbai": {
+  "valid_px": 107611213,
+  "agreement": 0.99785,
+  "fp32_change_km2": 104.33,
+  "int8_change_km2": 101.1,
+  "change_iou": 0.7976,
+  "fp32_change_share_of_valid": 0.0097
+ },
+ "delhi": {
+  "valid_px": 120555375,
+  "agreement": 0.99731,
+  "fp32_change_km2": 183.02,
+  "int8_change_km2": 176.15,
+  "change_iou": 0.8343,
+  "fp32_change_share_of_valid": 0.0152
+ }
+}

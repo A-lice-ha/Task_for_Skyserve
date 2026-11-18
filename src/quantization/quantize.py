@@ -1,9 +1,11 @@
 """Export trained models to ONNX, quantize to INT8, and compare FP32 vs INT8.
 
 Method: ONNX Runtime static post-training quantization (default variant
-'qdq_conv_u8'): QDQ format, Conv layers only, UINT8 activations, per-channel
-INT8 weights, MinMax calibration on 64 training-split patches (no evaluation
-data). Alternatives in VARIANTS are swept and recorded for comparison. Both FP32 and INT8 graphs run
+'qdq_conv_u8_pct'): QDQ format, Conv layers only, UINT8 activations,
+per-channel INT8 weights, percentile calibration on 64 training-split patches
+(no evaluation data). The default was changed from MinMax ('qdq_conv_u8')
+because percentile calibration kept more small FP32 detections at the same
+speed; that choice used only FP32-vs-INT8 fidelity, never human labels. Alternatives in VARIANTS are swept and recorded for comparison. Both FP32 and INT8 graphs run
 under ONNX Runtime CPU with identical thread settings, so comparisons are
 like-for-like. Normalisation and softmax are inside the exported graph, so
 deployment input is raw surface reflectance.
@@ -90,7 +92,7 @@ VARIANTS = {
     "qop_conv_u8": (QuantFormat.QOperator, QuantType.QUInt8, ["Conv"], CalibrationMethod.MinMax),
     "qdq_conv_u8_pct": (QuantFormat.QDQ, QuantType.QUInt8, ["Conv"], CalibrationMethod.Percentile),
 }
-DEFAULT_VARIANT = "qdq_conv_u8"
+DEFAULT_VARIANT = "qdq_conv_u8_pct"
 
 
 def quantize(fp32: Path, n_bands: int, variant: str = DEFAULT_VARIANT,
@@ -168,9 +170,9 @@ def measure_subprocess(path: Path, n_bands: int, threads: int) -> dict:
 
 
 
-def compare(run_dir: Path, reviews_path: Path | None) -> dict:
+def compare(run_dir: Path, reviews_path: Path | None, variant: str = DEFAULT_VARIANT) -> dict:
     fp32, n_bands = export_fp32(run_dir)
-    int8 = quantize(fp32, n_bands)
+    int8 = quantize(fp32, n_bands, variant)
     windows = json.loads((ROOT / "outputs" / "review" / "windows.json").read_text(encoding="utf-8"))
     by_city: dict[str, list[str]] = {}
     for w in windows:
@@ -201,8 +203,11 @@ def compare(run_dir: Path, reviews_path: Path | None) -> dict:
     union = (fp_change | q_change).sum()
     result = {
         "run": run_dir.name,
-        "method": f"ORT static PTQ variant '{DEFAULT_VARIANT}': QDQ, Conv-only, UINT8 activations, "
-                  "per-channel INT8 weights, MinMax; Sub/Abs differences and softmax kept FP32",
+        "variant": variant,
+        "method": f"ORT static PTQ variant '{variant}': {VARIANTS[variant][0].name}, "
+                  f"ops {VARIANTS[variant][2] or 'all'}, activations {VARIANTS[variant][1].name}, "
+                  f"per-channel INT8 weights, calibration {VARIANTS[variant][3].name}; "
+                  "Sub/Abs differences and softmax kept FP32",
         "variant_sweep_first_80_windows": sweep,
         "calibration": f"{CALIBRATION_PATCHES} train-split 96 px patches zero-padded to 256 (seed {SEED})",
         "file_size_mib": {"fp32": round(fp32.stat().st_size / 2**20, 3),
@@ -233,12 +238,13 @@ def main(argv: list[str] | None = None) -> None:
     parser.add_argument("--measure", type=Path)
     parser.add_argument("--bands", type=int, default=6)
     parser.add_argument("--threads", type=int, default=1)
+    parser.add_argument("--variant", choices=sorted(VARIANTS), default=DEFAULT_VARIANT)
     args = parser.parse_args(argv)
     if args.measure:
         print(json.dumps(measure(args.measure, args.bands, args.threads)))
         return
     OUT.mkdir(parents=True, exist_ok=True)
-    results = [compare(r, args.reviews) for r in args.runs]
+    results = [compare(r, args.reviews, args.variant) for r in args.runs]
     (OUT / "comparison.json").write_text(json.dumps(results, indent=1), encoding="utf-8")
     lines = ["| Model | Precision | Size MiB | Latency ms (1 thr) | Latency ms (4 thr) | Peak RSS MiB (1 thr) | Test F1 | Pixel agreement | Small-change retention |",
              "|---|---|---:|---:|---:|---:|---:|---:|---:|"]

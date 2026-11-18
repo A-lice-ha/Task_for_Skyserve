@@ -1,6 +1,7 @@
 {
  "run": "ground_ce_final",
- "method": "ORT static PTQ variant 'qdq_conv_u8': QDQ, Conv-only, UINT8 activations, per-channel INT8 weights, MinMax; Sub/Abs differences and softmax kept FP32",
+ "variant": "qdq_conv_u8_pct",
+ "method": "ORT static PTQ variant 'qdq_conv_u8_pct': QDQ, ops ['Conv'], activations QUInt8, per-channel INT8 weights, calibration Percentile; Sub/Abs differences and softmax kept FP32",
  "variant_sweep_first_80_windows": {
   "qdq_all_s8": {
    "size_mib": 1.201,
@@ -10,7 +11,7 @@
     "retained_by_int8": 1807,
     "retention": 0.9187
    },
-   "latency_1thr": 124.73
+   "latency_1thr": 157.19
   },
   "qdq_conv_u8": {
    "size_mib": 1.213,
@@ -20,7 +21,7 @@
     "retained_by_int8": 1676,
     "retention": 0.8521
    },
-   "latency_1thr": 83.97
+   "latency_1thr": 125.22
   },
   "qop_conv_u8": {
    "size_mib": 1.18,
@@ -30,7 +31,7 @@
     "retained_by_int8": 642,
     "retention": 0.3264
    },
-   "latency_1thr": 83.38
+   "latency_1thr": 124.05
   },
   "qdq_conv_u8_pct": {
    "size_mib": 1.213,
@@ -40,7 +41,7 @@
     "retained_by_int8": 1763,
     "retention": 0.8963
    },
-   "latency_1thr": 84.59
+   "latency_1thr": 127.85
   }
  },
  "calibration": "64 train-split 96 px patches zero-padded to 256 (seed 20261118)",
@@ -48,44 +49,44 @@
   "fp32": 4.5,
   "int8": 1.213
  },
- "pixel_agreement_all_windows": 0.99766,
- "change_iou_fp32_vs_int8": 0.8273,
+ "pixel_agreement_all_windows": 0.99859,
+ "change_iou_fp32_vs_int8": 0.8919,
  "small_change_retention": {
   "fp32_small_components": 7253,
-  "retained_by_int8": 6165,
-  "retention": 0.85
+  "retained_by_int8": 6501,
+  "retention": 0.8963
  },
  "runtime": {
   "fp32": [
    {
     "threads": 1,
-    "latency_ms_median": 123.65,
-    "latency_ms_p90": 129.71,
-    "peak_rss_mib": 409.3,
-    "peak_rss_delta_mib": 138.5
+    "latency_ms_median": 151.32,
+    "latency_ms_p90": 194.15,
+    "peak_rss_mib": 397.5,
+    "peak_rss_delta_mib": 126.9
    },
    {
     "threads": 4,
-    "latency_ms_median": 54.41,
-    "latency_ms_p90": 58.5,
-    "peak_rss_mib": 397.1,
-    "peak_rss_delta_mib": 126.7
+    "latency_ms_median": 82.92,
+    "latency_ms_p90": 89.34,
+    "peak_rss_mib": 400.9,
+    "peak_rss_delta_mib": 129.9
    }
   ],
   "int8": [
    {
     "threads": 1,
-    "latency_ms_median": 83.47,
-    "latency_ms_p90": 84.84,
-    "peak_rss_mib": 398.8,
-    "peak_rss_delta_mib": 128.2
+    "latency_ms_median": 120.79,
+    "latency_ms_p90": 131.92,
+    "peak_rss_mib": 399.2,
+    "peak_rss_delta_mib": 128.0
    },
    {
     "threads": 4,
-    "latency_ms_median": 41.97,
-    "latency_ms_p90": 47.29,
-    "peak_rss_mib": 399.2,
-    "peak_rss_delta_mib": 129.0
+    "latency_ms_median": 58.42,
+    "latency_ms_p90": 62.53,
+    "peak_rss_mib": 399.7,
+    "peak_rss_delta_mib": 129.2
    }
   ]
  },
@@ -239,6 +240,30 @@
     "average_precision": 0.0656,
     "auroc": 0.3549
    },
+   "grouped_cv_heldout": {
+    "n": 122,
+    "positives": 10,
+    "tp": 8,
+    "fp": 94,
+    "fn": 2,
+    "precision": 0.0784,
+    "recall": 0.8,
+    "f1": 0.1429,
+    "f1_95ci": [
+     0.0588,
+     0.2242
+    ],
+    "folds": 5,
+    "blocks": 100,
+    "k_per_fold": [
+     1,
+     128,
+     1,
+     1,
+     1
+    ],
+    "natural_false_alarm_rate": 0.8349
+   },
    "natural_false_alarm_rate_heldout": {
     "n": 53,
     "rate": 0.7358,
@@ -272,20 +297,20 @@
   },
   "int8": {
    "method": "ground_ce_final_int8",
-   "k_selected_on_val": 128,
+   "k_selected_on_val": 64,
    "splits": {
     "val/all": {
      "n": 60,
      "positives": 2,
      "tp": 2,
-     "fp": 41,
+     "fp": 43,
      "fn": 0,
-     "precision": 0.0465,
+     "precision": 0.0444,
      "recall": 1.0,
-     "f1": 0.0889,
+     "f1": 0.0851,
      "f1_95ci": [
       0.0,
-      0.2083
+      0.2
      ]
     },
     "val/mumbai": {
@@ -302,24 +327,24 @@
      "n": 40,
      "positives": 2,
      "tp": 2,
-     "fp": 31,
+     "fp": 33,
      "fn": 0,
-     "precision": 0.0606,
+     "precision": 0.0571,
      "recall": 1.0,
-     "f1": 0.1143
+     "f1": 0.1081
     },
     "test/all": {
      "n": 58,
      "positives": 6,
      "tp": 5,
-     "fp": 39,
+     "fp": 41,
      "fn": 1,
-     "precision": 0.1136,
+     "precision": 0.1087,
      "recall": 0.8333,
-     "f1": 0.2,
+     "f1": 0.1923,
      "f1_95ci": [
-      0.0455,
-      0.3509
+      0.0435,
+      0.339
      ]
     },
     "test/mumbai": {
@@ -336,11 +361,11 @@
      "n": 40,
      "positives": 5,
      "tp": 4,
-     "fp": 27,
+     "fp": 29,
      "fn": 1,
-     "precision": 0.129,
+     "precision": 0.1212,
      "recall": 0.8,
-     "f1": 0.2222
+     "f1": 0.2105
     },
     "zero_shot/all": {
      "n": 4,
@@ -379,15 +404,15 @@
     "train/all": {
      "n": 122,
      "positives": 14,
-     "tp": 8,
-     "fp": 79,
-     "fn": 6,
-     "precision": 0.092,
-     "recall": 0.5714,
-     "f1": 0.1584,
+     "tp": 9,
+     "fp": 88,
+     "fn": 5,
+     "precision": 0.0928,
+     "recall": 0.6429,
+     "f1": 0.1622,
      "f1_95ci": [
-      0.0619,
-      0.2569
+      0.0727,
+      0.2617
      ]
     },
     "train/mumbai": {
@@ -403,24 +428,48 @@
     "train/delhi": {
      "n": 84,
      "positives": 11,
-     "tp": 5,
-     "fp": 61,
-     "fn": 6,
-     "precision": 0.0758,
-     "recall": 0.4545,
-     "f1": 0.1299
+     "tp": 6,
+     "fp": 70,
+     "fn": 5,
+     "precision": 0.0789,
+     "recall": 0.5455,
+     "f1": 0.1379
     }
    },
    "ranking_heldout_val_test_zeroshot": {
     "n": 122,
     "positives": 10,
     "prevalence": 0.082,
-    "average_precision": 0.0635,
-    "auroc": 0.3388
+    "average_precision": 0.065,
+    "auroc": 0.3496
+   },
+   "grouped_cv_heldout": {
+    "n": 122,
+    "positives": 10,
+    "tp": 8,
+    "fp": 94,
+    "fn": 2,
+    "precision": 0.0784,
+    "recall": 0.8,
+    "f1": 0.1429,
+    "f1_95ci": [
+     0.0588,
+     0.2242
+    ],
+    "folds": 5,
+    "blocks": 100,
+    "k_per_fold": [
+     1,
+     64,
+     1,
+     1,
+     1
+    ],
+    "natural_false_alarm_rate": 0.8349
    },
    "natural_false_alarm_rate_heldout": {
     "n": 53,
-    "rate": 0.7358,
+    "rate": 0.7736,
     "by_class": {
      "acquisition_artifact": {
       "n": 14,
@@ -428,7 +477,7 @@
      },
      "natural_vegetation": {
       "n": 36,
-      "flagged": 29
+      "flagged": 31
      },
      "natural_water": {
       "n": 3,
