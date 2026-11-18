@@ -7,6 +7,7 @@
 !/data/raw/.gitkeep
 /data/processed/*
 !/data/processed/.gitkeep
+/data/labels/osm/
 
 # Generated maps, evidence, reports, and model artifacts.
 /outputs/maps/*

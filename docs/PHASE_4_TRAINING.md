@@ -201,6 +201,13 @@ date in `notes`; if the two Sentinel dates are inconclusive, use `uncertain`
 or leave the region unlabeled. This is a declared review protocol, not an
 automated technical enforcement.
 
+For the Delhi 2023-10-06 acquisition (05:27:01 UTC), the available historical
+OSM extraction uses an end-of-day snapshot (23:59:59 UTC). It can therefore
+include same-day edits made after the satellite pass. Treat these features as
+dated weak-reference candidates only, not as an exact overpass-time map or
+evidence of when a physical change occurred; record the snapshot time when
+using any OSM feature.
+
 The 2022-12-23 to 2023-05-12 Mumbai pair spans post-monsoon/dry-season to
 pre-monsoon conditions. L1C metadata mean solar zenith changes from 46.52° to
 17.09°, and azimuth from 156.16° to 91.43°; vegetation senescence,

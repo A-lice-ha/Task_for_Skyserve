@@ -97,6 +97,13 @@ imagery or authoritative construction records are preferable for label review.
 A DEM is an optional additional input if terrain illumination or relief is
 material; land-cover data may aid context but cannot substitute for labels.
 
+The historical OSM downloader and its date/coverage limitations are documented
+in [`HISTORICAL_OSM.md`](./HISTORICAL_OSM.md). Its default Delhi snapshot is
+2023-10-06 at 23:59:59 UTC. The corresponding Sentinel-2 acquisition was at
+05:27:01 UTC, so the snapshot may include edits made after that day's image;
+this is not an exact OSM state at satellite overpass and must not be used as
+physical change-date ground truth.
+
 ## 3. Preprocessing and registration
 
 The Phase 2 workflow is implemented in
