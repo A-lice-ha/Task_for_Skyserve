@@ -48,3 +48,28 @@ __pycache__/
 /outputs/review/
 /outputs/quantization/*.onnx
 *.log
+
+# Submitted deliverables: final model artifacts, georeferenced change maps
+# (class rasters), detection registers and evidence panels.
+!/outputs/models/ground_ce_final/
+!/outputs/models/onboard_final/
+/outputs/models/ground_ce_final/*
+/outputs/models/onboard_final/*
+!/outputs/models/ground_ce_final/model.pt
+!/outputs/models/ground_ce_final/model_fp32.onnx
+!/outputs/models/ground_ce_final/model_int8.onnx
+!/outputs/models/ground_ce_final/run.json
+!/outputs/models/ground_ce_final/quantization.json
+!/outputs/models/onboard_final/model.pt
+!/outputs/models/onboard_final/model_fp32.onnx
+!/outputs/models/onboard_final/model_int8.onnx
+!/outputs/models/onboard_final/run.json
+!/outputs/models/onboard_final/quantization.json
+!/outputs/models/ground_ce_final/window_filter.json
+!/outputs/maps/*_ground_fp32_change_class.tif
+!/outputs/maps/*_context.tif
+!/outputs/maps/*_inference.json
+!/outputs/maps/priority_detections_ground_fp32.gpkg
+!/outputs/maps/detection_register_ground_fp32.csv
+!/outputs/evidence/*.jpg
+!/outputs/evidence/README.md
