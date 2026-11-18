@@ -73,3 +73,8 @@ __pycache__/
 !/outputs/maps/detection_register_ground_fp32.csv
 !/outputs/evidence/*.jpg
 !/outputs/evidence/README.md
+
+# SQLite/GeoPackage sidecar files written while a layer is open (QGIS).
+*.gpkg-shm
+*.gpkg-wal
+*.gpkg-journal

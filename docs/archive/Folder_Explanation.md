@@ -1,3 +1,10 @@
+> **Archived (2026-11-18).** Early description of the supplied folder,
+> written with GitHub Copilot on 2026-11-13 (see
+> [`../ai_usage/2026-11-13_copilot_99f59a09.md`](../ai_usage/2026-11-13_copilot_99f59a09.md))
+> before any code existed. Kept as a record; it is not current. See the [README](../../README.md),
+> [technical report](../TECHNICAL_REPORT.md) and
+> [decision log](../DECISION_LOG.md) for the submitted work.
+
 # Folder Explanation: Interview Task - Man-Made Change Detection
 
 This folder contains a Sentinel-2 L1C dataset package and the assignment document for a geospatial change-detection task. The goal is to build a reproducible system that detects structural man-made changes between satellite observations while separating them from natural variation, seasonal effects, and acquisition differences.

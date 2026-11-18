@@ -1,3 +1,9 @@
+> **Archived (2026-11-18).** Early implementation plan, committed on
+> 2026-11-17 (commit f053425) before the code was written. Kept as a record
+> of the original plan; it is not current. See the [README](../../README.md),
+> [technical report](../TECHNICAL_REPORT.md) and
+> [decision log](../DECISION_LOG.md) for the submitted work.
+
 # 🛰️ Implementation Plan: Man-Made Change Detection from Sentinel-2 Imagery
 
 > [!IMPORTANT]
