@@ -9,7 +9,7 @@
  ],
  "tiles": 2500,
  "threads": 6,
- "seconds": 221.3,
+ "seconds": 169.1,
  "class_map": "delhi_ground_int8_change_class.tif",
  "prob_map": "delhi_ground_int8_change_prob.tif"
 }

@@ -86,12 +86,15 @@ generalisation.
   - Held-out AUROC 0.761 (CI 0.637–0.863).
   - Natural false-alarm rate 5.5%, against 74% without it.
   - It ranks the detection register rather than deleting detections.
-- **Quantization** (ONNX Runtime static INT8, Conv-only), ground model:
+- **Quantization** (ONNX Runtime static INT8, Conv-only, percentile
+  calibration), ground model:
   - Size: 4.50 → 1.21 MiB.
-  - Latency: 124 → 83 ms per 256 px window on one thread.
-  - Same window-level F1, 99.8% pixel agreement with FP32.
-  - Misses 15% of the smallest changes, so the register uses FP32.
-  - INT8 gives no speed-up for the onboard model on this CPU.
+  - Latency: 1.25–1.5× faster per 256 px window.
+  - Window-level F1 equivalent within noise; 99.9% pixel agreement with FP32.
+  - Keeps 90% of the smallest changes (85% with MinMax calibration). The
+    register still uses FP32.
+  - INT8 gives no speed-up for the onboard model on this CPU; its
+    small-change retention rose from 76% to 87%.
 - **Outputs:**
   - Full-tile change maps for both cities.
   - Detection register: 86,982 detections, 831 in context-flagged cells.
@@ -117,7 +120,7 @@ result uses OSM.** The cache under `data/labels/osm/` allows resumption
   quantization reports, FP32 change-class maps, context grids, the register
   CSV, the priority GeoPackage and the evidence panels. Larger rasters are
   regenerated with the README commands.
-- Decisions D-001 to D-016 are in the decision log.
+- Decisions D-001 to D-017 are in the decision log.
 - AI usage: `AI_USAGE.md` and `docs/ai_usage/` hold the full Copilot and
   Claude Code transcripts.
 
@@ -134,5 +137,4 @@ result uses OSM.** The cache under `data/labels/osm/` allows resumption
   - a third date per city, to separate crop cycles from construction;
   - training the pixel model against reviewed context instead of the weak
     rules;
-  - percentile calibration for INT8, to recover small-change sensitivity;
   - benchmarks on real onboard hardware.

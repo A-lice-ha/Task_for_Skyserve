@@ -22,6 +22,7 @@ detailed in the phase documents and summarised here so the log is complete.
 | D-014 | 2026-11-18 | Block-grouped cross-validation instead of more retraining folds |
 | D-015 | 2026-11-18 | Final model selection and deployed precision |
 | D-016 | 2026-11-18 | Second-stage window context filter for prioritisation |
+| D-017 | 2026-11-18 | Percentile calibration replaces MinMax for INT8 |
 
 ---
 
@@ -196,6 +197,8 @@ Ambiguous and invalid pixels are ignored in training (`ignore_index=255`).
 - The variant sweep is re-run on the final models and stored in
   `outputs/models/<run>/quantization.json`. QAT is not attempted unless PTQ
   loses unacceptable sensitivity.
+- **Superseded in part by D-017:** calibration changed from MinMax to
+  percentile.
 
 ## D-012 AI usage record generated from local session logs
 
@@ -252,10 +255,11 @@ Ambiguous and invalid pixels are ignored in training (`ignore_index=255`).
   (6/6 held-out true positives).
 - **Onboard:** `onboard_final` (only completed onboard configuration).
 - **Precision:** the ground segment register uses **FP32** because INT8
-  retained only 85 % of small (≤ 10 px) FP32 detections. INT8
+  retained only 85 % of small (≤ 10 px) FP32 detections (90 % after
+  D-017; still a loss). INT8
   (`model_int8.onnx`, Conv-only QDQ) is the deployable artifact for
-  constrained hardware: 3.7× smaller and 1.5× faster on one thread with
-  unchanged window-level test F1. For the onboard model INT8 gives no speed-up
+  constrained hardware: 3.7× smaller and 1.25–1.5× faster on one thread,
+  with window-level test F1 equivalent within noise. For the onboard model INT8 gives no speed-up
   on this CPU (already small; quantize/dequantize overhead dominates), so FP32
   ONNX is recommended unless the target accelerator needs integer kernels.
 
@@ -277,3 +281,20 @@ Ambiguous and invalid pixels are ignored in training (`ignore_index=255`).
   operating point can be set, so the full register is kept and ordered.
 - **Alternative not taken:** inverting the pixel-count score after seeing
   held-out AUROC < 0.5 would have used test information.
+
+## D-017 Percentile calibration replaces MinMax for INT8
+
+- **Decision:** default quantization variant `qdq_conv_u8_pct` (QDQ,
+  Conv-only, UINT8 activations, per-channel INT8 weights, percentile
+  calibration 0.001–99.999) for both final models.
+- **Evidence (final models, all 306 windows):** small-change retention
+  0.850 → 0.896 (ground) and 0.762 → 0.874 (onboard); ground change IoU
+  with FP32 0.827 → 0.892. Latency was unchanged in a same-session sweep
+  (125 vs 128 ms on one thread). MinMax results are archived in
+  `outputs/experiments/quantization/`.
+- **Selection rule:** fidelity to the FP32 model (pixel agreement and
+  small-change retention), which needs no human labels. Detection metrics
+  were reported, not optimised. Ground INT8 test F1 moved 0.200 → 0.192 (two
+  more flagged natural windows), which is inside the confidence interval.
+- **Not changed:** the ground register stays FP32 (D-015); INT8 still
+  misses about 10 % of the smallest detections.

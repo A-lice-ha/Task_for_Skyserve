@@ -156,52 +156,84 @@ are too few for a reliable operating point.
 
 ## 5.5 Quantization (ONNX Runtime static INT8)
 
-Method (D-011): QDQ, Conv layers only, UINT8 activations, per-channel INT8
-weights, MinMax calibration on 64 train-split patches; normalisation, the
-temporal difference (Sub/Abs) and softmax remain FP32. Latency is the median
-of 30 batch-1 256 × 256 forward passes in a fresh process; peak RSS is the
-highest resident memory sampled in that process. Accuracy is measured on all 306 reviewed windows
-with the same inputs, threshold and k as FP32.
+Method (D-011, D-017): QDQ format, Conv layers only, UINT8 activations,
+per-channel INT8 weights, **percentile calibration** on 64 train-split
+patches. Normalisation, the temporal difference (Sub/Abs) and softmax stay
+FP32. Latency is the median of 30 batch-1 256 × 256 forward passes in a
+fresh process. Peak RSS is the highest resident memory sampled in that
+process. Accuracy is measured on all 306 reviewed windows with the same
+inputs; each precision selects its own k on validation.
 
-| Model | Precision | Size MiB | Latency ms, 1 thread | Latency ms, 4 threads | Peak RSS MiB | Test F1 | Pixel agreement with FP32 | Small-change retention |
-|---|---|---:|---:|---:|---:|---:|---:|---:|
-| ground_ce_final | FP32 | 4.50 | 123.7 | 54.4 | 409 | 0.200 | 1 | 1 |
-| ground_ce_final | INT8 | 1.21 | 83.5 | 42.0 | 399 | 0.200 | 0.9977 | 0.850 |
-| onboard_final | FP32 | 1.13 | 11.2 | 6.0 | 296 | 0.192 | 1 | 1 |
-| onboard_final | INT8 | 0.73 | 12.1 | 8.5 | 307 | 0.200 | 0.9961 | 0.762 |
+| Model | Precision | Size MiB | Latency ms, 1 thread | Latency ms, 4 threads | Peak RSS MiB | Test F1 | Pixel agreement with FP32 | Change IoU with FP32 | Small-change retention |
+|---|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| ground_ce_final | FP32 | 4.50 | 151.3 | 82.9 | 398 | 0.200 | 1 | 1 | 1 |
+| ground_ce_final | INT8 | 1.21 | 120.8 | 58.4 | 399 | 0.192 | 0.9986 | 0.892 | **0.896** |
+| onboard_final | FP32 | 1.13 | 18.4 | 8.3 | 296 | 0.192 | 1 | 1 | 1 |
+| onboard_final | INT8 | 0.73 | 20.7 | 12.5 | 306 | 0.192 | 0.9960 | 0.810 | **0.874** |
 
 Parameter counts do not change (1,175,571 and 279,274). Small-change
 retention is the share of FP32 change components of ≤ 10 px (≤ 1,000 m²)
-that INT8 still detects (7,253 components for the ground model). Change-pixel
-IoU between FP32 and INT8 ground maps: 0.827.
+that INT8 still detects (7,253 components for the ground model, 3,634 for
+the onboard model).
 
-Variant sweep on the ground model (first 80 windows, `quantization.json`):
+**Timing conditions.** These latencies were measured while other desktop
+applications (QGIS, VS Code) were using the CPU, so every number, FP32
+included, is about 20–50 % higher than in the first quantization run on a
+quieter machine (ground FP32 123.7 / 54.4 ms, MinMax INT8 83.5 / 42.0 ms).
+Compare FP32 and INT8 within the same run: the ground INT8 model is
+1.25–1.5× faster on one thread and 1.3–1.4× on four.
 
-| Variant | MiB | Latency ms (1 thr) | Pixel agreement | Small-change retention |
+### MinMax vs percentile calibration (D-017)
+
+The first submission used MinMax calibration. Its results are archived in
+`outputs/experiments/quantization/*_minmax.json`.
+
+| | Ground, MinMax | Ground, percentile | Onboard, MinMax | Onboard, percentile |
 |---|---:|---:|---:|---:|
-| QDQ, all ops, INT8 activations | 1.20 | 124.7 | 0.9985 | 0.919 |
-| **QDQ, Conv only, UINT8 activations (chosen)** | 1.21 | 84.0 | 0.9977 | 0.852 |
-| QOperator, Conv only, UINT8 | 1.18 | 83.4 | 0.9942 | 0.326 |
-| QDQ Conv-only, percentile calibration | 1.21 | 84.6 | 0.9987 | 0.896 |
+| Small-change retention | 0.850 | **0.896** | 0.762 | **0.874** |
+| Change IoU with FP32 | 0.827 | **0.892** | 0.805 | 0.810 |
+| Pixel agreement with FP32 | 0.9977 | 0.9986 | 0.9961 | 0.9960 |
+| Test F1 (FP32: 0.200 / 0.192) | 0.200 | 0.192 | 0.200 | 0.192 |
+| Held-out natural false-alarm rate (FP32: 0.736 / 0.793) | 0.736 | 0.774 | 0.755 | 0.793 |
+
+The ground INT8 test F1 change (0.200 → 0.192) is two more flagged
+natural windows with the same 5 of 6 hits. That is well inside the
+confidence interval. Percentile calibration sets each activation range
+from the 0.001st to the 99.999th percentile instead of the absolute
+min/max. The likely, untested reason it keeps more few-pixel responses is
+that the finer quantization step it leaves for typical values preserves
+weak activations.
+
+Variant sweep, run in the same session on the first 80 windows
+(`quantization.json`):
+
+| Variant | Ground ms (1 thr) | Ground retention | Onboard ms (1 thr) | Onboard retention |
+|---|---:|---:|---:|---:|
+| QDQ, all ops, INT8 activations | 157.2 | 0.919 | 29.6 | 0.732 |
+| QDQ, Conv only, UINT8, MinMax | 125.2 | 0.852 | 19.3 | 0.728 |
+| QOperator, Conv only, UINT8, MinMax | 124.1 | 0.326 | 20.1 | 0.552 |
+| **QDQ, Conv only, UINT8, percentile (chosen)** | 127.9 | 0.896 | 19.7 | **0.887** |
 
 Interpretation:
 
-- INT8 is 3.7× smaller and 1.5× faster (1 thread) for the ground model, with
-  unchanged window-level F1, but it **loses 15 % of the smallest
-  detections** — the changes that matter most at 10 m. Quantizing all ops
-  keeps more of them (92 %) but gives no speed-up on this CPU. Percentile
-  calibration retains more (90 %) at the same speed and is the next thing to
-  adopt; it was not switched in after seeing test-window results.
+- For the ground model INT8 is 3.7× smaller and 1.25–1.5× faster. Window
+  metrics are equivalent within noise, and 90 % of the smallest FP32
+  detections survive. Quantizing all ops keeps slightly more (92 %), but it
+  is slower than FP32 on this CPU.
+- The variant was chosen on fidelity to the FP32 model (pixel agreement and
+  small-change retention), measured without human labels. It was not chosen
+  on detection metrics.
 - Peak memory is dominated by the ONNX Runtime process (~270 MiB baseline),
   so INT8 hardly changes it here.
-- For the onboard model INT8 is *slower* on this x86 CPU: the network is
-  already small and the quantize/dequantize overhead dominates. INT8 is only
-  worthwhile on hardware with integer accelerators; this was not tested on a
-  target onboard device.
-- The ground register is produced with FP32 because of the small-change loss
-  (D-015); INT8 full-tile maps are produced too for comparison.
-- QAT was not attempted: PTQ kept window-level metrics unchanged, and the
-  small-change loss has a cheaper fix (percentile calibration).
+- For the onboard model INT8 is **slower** on this x86 CPU. The network is
+  already small, so quantize/dequantize overhead dominates. INT8 only pays
+  off on hardware with integer accelerators, which was not tested.
+- The ground register is still produced with FP32 (D-015). INT8 misses
+  about 10 % of the smallest detections, and the ground segment has no
+  compute constraint. The INT8 full-tile maps are kept for comparison.
+- QAT was not attempted. Post-training quantization keeps window-level
+  metrics, and percentile calibration recovered most of the small-change
+  loss.
 
 ## 5.6 Full-tile change maps, detection register and evidence
 
@@ -213,11 +245,14 @@ not committed — regenerate with the command in the README).
 
 | City | Tiles | FP32 s (6 thr) | INT8 s (6 thr) | FP32 change km² (share of valid) | FP32 vs INT8 pixel agreement | Change IoU |
 |---|---:|---:|---:|---:|---:|---:|
-| Mumbai | 2,480 | 286 | 160 | 104.3 (0.97 %) | 0.9979 | 0.798 |
-| Delhi | 2,500 | 285 | 221 | 183.0 (1.52 %) | 0.9973 | 0.834 |
+| Mumbai | 2,480 | 286 | 174 | 104.3 (0.97 %) | 0.9987 | 0.874 |
+| Delhi | 2,500 | 285 | 169 | 183.0 (1.52 %) | 0.9984 | 0.896 |
 
-Only the Mumbai INT8 run had the CPU to itself; the other three overlapped
-with evaluation jobs, so their wall times are pessimistic. Controlled
+INT8 = percentile-calibrated model (D-017). With the earlier MinMax model,
+pixel agreement was 0.9979 / 0.9973 and change IoU 0.798 / 0.834
+(`outputs/experiments/quantization/full_tile_fp32_vs_int8_minmax.json`).
+Wall times include raster I/O and were measured while other jobs or desktop
+applications shared the CPU, so they are indicative only. Controlled
 per-window latency is in 5.5.
 
 **Context grid:** `outputs/maps/<city>_ground_fp32_context.tif` — the window

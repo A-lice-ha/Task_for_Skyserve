@@ -9,7 +9,7 @@
  ],
  "tiles": 2480,
  "threads": 6,
- "seconds": 159.6,
+ "seconds": 173.7,
  "class_map": "mumbai_ground_int8_change_class.tif",
  "prob_map": "mumbai_ground_int8_change_prob.tif"
 }
