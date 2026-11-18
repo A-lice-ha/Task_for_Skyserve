@@ -1,5 +1,16 @@
 # Historical OSM infrastructure reference
 
+> **Extraction status (2026-11-18): not completed; dropped from this
+> submission.** The downloader is implemented and tested, but the public
+> Overpass service handled the large building/infrastructure queries too
+> slowly (about two successful responses per hour after subdivision). After
+> about 2.5 hours, only 26 cached responses existed, all for Mumbai
+> 2022-12-23; no Mumbai 2023-05-12 or Delhi responses were obtained, and no
+> GeoJSON/GeoPackage or manifest was produced. The project owner decided to
+> stop the extraction. No result in this repository uses OSM data. The
+> downloader can resume from `query_cache/` if extraction is resumed later
+> (see [DECISION_LOG D-003](DECISION_LOG.md)).
+
 The downloader in [`../src/utils/historical_osm.py`](../src/utils/historical_osm.py)
 creates a dated, supporting OpenStreetMap (OSM) reference layer for the Delhi
 or Mumbai study areas. OSM is not independent ground truth: mapping edits are not construction
@@ -95,6 +106,10 @@ The output directory contains:
   query counts, limitations, and `complete` or `partial` status.
 - `failed_tiles.json`: category, bounding box, depth, and error for failed
   requests; it is empty when there are no recorded failures.
+- `skipped_elements.json`: matched OSM elements whose geometry could not be
+  built (for example, route relations with incomplete members). They are
+  excluded from the layer one element at a time, so the rest of the tile is
+  kept; the manifest records their count.
 - `query_cache/`: successful raw Overpass responses used to resume work.
 
 Feature properties include `class_id`, `class_name`, `element_type`, `osm_id`,

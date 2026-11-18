@@ -102,6 +102,9 @@ class PermanentQueryError(OverpassError):
 class ExtractionResult:
     features: dict[tuple[str, str], dict[str, Any]] = field(default_factory=dict)
     failures: list[dict[str, Any]] = field(default_factory=list)
+    skipped_elements: dict[tuple[str, str], dict[str, Any]] = field(
+        default_factory=dict
+    )
     successful_queries: int = 0
     cached_queries: int = 0
 
@@ -194,11 +197,24 @@ def _element_metadata(data: dict[str, Any]) -> dict[tuple[str, str], dict[str, A
 
 
 def convert_to_features(
-    data: dict[str, Any], class_id: int, snapshot: str
+    data: dict[str, Any],
+    class_id: int,
+    snapshot: str,
+    skipped: list[dict[str, Any]] | None = None,
 ) -> list[dict[str, Any]]:
+    """Convert one Overpass response into classified GeoJSON features.
+
+    Elements whose geometry cannot be built (for example, route relations with
+    incomplete members) are dropped individually instead of failing the whole
+    tile. When ``skipped`` is given, one record per dropped element is appended.
+    """
     metadata = _element_metadata(data)
     try:
-        converted = osm2geojson.json2geojson(data, raise_on_failure=True)
+        # Per-element failures are tolerated and reported below; the library's
+        # own logging would otherwise print each failed relation in full.
+        converted = osm2geojson.json2geojson(
+            data, raise_on_failure=False, log_level="CRITICAL"
+        )
     except Exception as error:
         raise OverpassError(f"Could not convert Overpass geometries: {error}") from error
 
@@ -233,6 +249,24 @@ def convert_to_features(
                 "properties": properties,
             }
         )
+
+    if skipped is not None:
+        converted_ids = {
+            _element_identity(feature["properties"]) for feature in features
+        }
+        for identity, element_metadata in metadata.items():
+            if identity in converted_ids:
+                continue
+            skipped.append(
+                {
+                    "element_type": identity[0],
+                    "osm_id": identity[1],
+                    "class_id": class_id,
+                    "class_name": CATEGORIES[class_id],
+                    "osm_tags": element_metadata.get("osm_tags"),
+                    "reason": "geometry_not_convertible",
+                }
+            )
     return features
 
 
@@ -376,11 +410,18 @@ class HistoricalOSMDownloader:
 
     def _process_tile(self, bbox: BBox, class_id: int, depth: int) -> None:
         try:
+            cached_before = self.result.cached_queries
             data = self.download_tile(bbox, class_id)
-            features = convert_to_features(data, class_id, self.snapshot)
+            skipped: list[dict[str, Any]] = []
+            features = convert_to_features(data, class_id, self.snapshot, skipped)
             for feature in features:
                 merge_feature(self.result.features, feature)
-            time.sleep(self.request_delay)
+            for record in skipped:
+                identity = (record["element_type"], record["osm_id"])
+                self.result.skipped_elements.setdefault(identity, record)
+            if self.result.cached_queries == cached_before:
+                # Only pause after live requests; cache replays need no throttle.
+                time.sleep(self.request_delay)
         except SubdivisionRequired as error:
             south, west, north, east = bbox
             if (
@@ -486,12 +527,21 @@ class HistoricalOSMDownloader:
         geojson_path = self.output_dir / f"{stem}.geojson"
         gpkg_path = self.output_dir / f"{stem}.gpkg"
         failed_path = self.output_dir / "failed_tiles.json"
+        skipped_path = self.output_dir / "skipped_elements.json"
         manifest_path = self.output_dir / "extraction_manifest.json"
         gdf.to_file(geojson_path, driver="GeoJSON")
         gdf.to_file(gpkg_path, layer="infrastructure", driver="GPKG")
         failed_path.write_text(
             json.dumps(self.result.failures, indent=2, ensure_ascii=False),
             encoding="utf-8",
+        )
+        skipped = [
+            record
+            for identity, record in sorted(self.result.skipped_elements.items())
+            if identity not in self.result.features
+        ]
+        skipped_path.write_text(
+            json.dumps(skipped, indent=2, ensure_ascii=False), encoding="utf-8"
         )
         summary = {
             "city": city,
@@ -509,17 +559,20 @@ class HistoricalOSMDownloader:
             "successful_queries": self.result.successful_queries,
             "cached_queries": self.result.cached_queries,
             "failed_tiles": len(self.result.failures),
+            "skipped_elements": len(skipped),
             "status": "complete" if not self.result.failures else "partial",
             "outputs": {
                 "geojson": geojson_path.name,
                 "geopackage": gpkg_path.name,
                 "failed_tiles": failed_path.name,
+                "skipped_elements": skipped_path.name,
             },
             "limitations": [
                 "OSM element edit timestamps are not physical construction or demolition dates.",
                 "Deleted or unmapped infrastructure may be absent from historical OSM.",
                 "OSM is supporting/weak-reference data, not independent ground truth.",
                 "This is a historical database snapshot, not an archive of every feature's physical state.",
+                "Elements whose geometry could not be built (e.g. route relations) are listed in skipped_elements.json, not in the layer.",
             ],
         }
         manifest_path.write_text(
@@ -590,7 +643,8 @@ def main(argv: list[str] | None = None) -> int:
             f"{len(result.features)} unique features, "
             f"{result.successful_queries} downloaded queries, "
             f"{result.cached_queries} cached queries, "
-            f"{len(result.failures)} failed tiles. "
+            f"{len(result.failures)} failed tiles, "
+            f"{len(result.skipped_elements)} unconvertible elements skipped. "
             f"See {output_dir}"
         )
         if result.failures:

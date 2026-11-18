@@ -81,6 +81,26 @@ def test_convert_preserves_osm_identity_tags_and_snapshot():
     assert properties["reference_role"] == "supporting_osm_reference_not_ground_truth"
 
 
+def test_unconvertible_relation_is_skipped_without_losing_tile_features():
+    data = _way_response()
+    data["elements"].append(
+        {
+            "type": "relation",
+            "id": 999,
+            "tags": {"construction": "subway", "type": "route"},
+            # A route relation whose member way carries no geometry.
+            "members": [{"type": "way", "ref": 1, "role": ""}],
+        }
+    )
+    skipped = []
+
+    features = convert_to_features(data, 1, "2022-12-23T23:59:59Z", skipped)
+
+    assert [_element_identity(f["properties"]) for f in features] == [("way", "123")]
+    assert [(s["element_type"], s["osm_id"]) for s in skipped] == [("relation", "999")]
+    assert skipped[0]["class_id"] == 1
+
+
 def test_merge_prefers_class_priority_for_same_osm_element():
     road = convert_to_features(_way_response(), 3, "2023-10-06T23:59:59Z")[0]
     bridge = convert_to_features(_way_response(), 4, "2023-10-06T23:59:59Z")[0]
@@ -181,6 +201,8 @@ def test_write_outputs_creates_attributed_geojson_and_geopackage(tmp_path):
     assert manifest["status"] == "complete"
     assert manifest["attribution"] == "© OpenStreetMap contributors"
     assert manifest["city"] == "mumbai"
+    assert manifest["skipped_elements"] == 0
+    assert json.loads((tmp_path / "skipped_elements.json").read_text(encoding="utf-8")) == []
 
 
 def test_permanent_query_error_is_reported_without_empty_success(tmp_path, monkeypatch):
